@@ -1,0 +1,4869 @@
+<?php
+/* 
+ * File: Core/Container/Exceptions/CircularDependencyException.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Exceptions;
+
+/*
+ * Exception yang dilempar ketika terdeteksi ketergantungan sirkular.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Exceptions/CircularDependencyException.php
+ */
+final class CircularDependencyException extends ContainerException
+{
+}
+/* ======== END OF Core/Container/Exceptions/CircularDependencyException.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Exceptions/ContainerException.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Exceptions;
+
+/*
+ * Exception dasar untuk semua kesalahan yang terkait dengan container.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Exceptions/ContainerException.php
+ */
+class ContainerException extends \Exception
+{
+}
+/* ======== END OF Core/Container/Exceptions/ContainerException.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Exceptions/FatalErrorException.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Exceptions;
+
+/*
+ * Exception yang dilempar ketika terjadi kesalahan fatal yang tidak dapat dipulihkan.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Exceptions/FatalErrorException.php
+ */
+final class FatalErrorException extends ContainerException
+{
+}
+/* ======== END OF Core/Container/Exceptions/FatalErrorException.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Exceptions/InvalidArgumentException.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Exceptions;
+
+/*
+ * Exception yang dilempar ketika argumen yang diberikan tidak valid.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Exceptions/InvalidArgumentException.php
+ */
+final class InvalidArgumentException extends ContainerException
+{
+}
+/* ======== END OF Core/Container/Exceptions/InvalidArgumentException.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Exceptions/NotFoundException.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Exceptions;
+
+/*
+ * Exception yang dilempar ketika service atau binding tidak ditemukan.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Exceptions/NotFoundException.php
+ */
+final class NotFoundException extends ContainerException
+{
+}
+/* ======== END OF Core/Container/Exceptions/NotFoundException.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Contracts/ContainerInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Contracts;
+
+use Psr\Container\ContainerInterface as PsrContainerInterface;
+use Core\Container\Event\Contracts\EventDispatcherInterface as CoreEventDispatcherInterface;
+use Core\Container\Exceptions\ContainerException;
+use Core\Container\Exceptions\NotFoundException;
+
+/*
+ * Interface utama untuk Container.
+ *
+ * Mendefinisikan kontrak inti untuk dependency injection container,
+ * menggabungkan standar PSR-11 dengan fungsionalitas tambahan untuk
+ * framework yang lebih canggih seperti service binding, scoping,
+ * dan lifecycle management.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Contracts/ContainerInterface.php
+ */
+interface ContainerInterface extends PsrContainerInterface, DisposableInterface, CloneableInterface
+{
+    /**
+     * Menemukan dan mengembalikan entri dari container.
+     *
+     * @param string $id Identifier entri yang akan diambil.
+     * @return mixed Entri yang terkait dengan identifier.
+     * @throws NotFoundException Tidak ada entri yang diidentifikasi oleh $id.
+     * @throws ContainerException Kesalahan lain saat mengambil entri.
+     */
+    public function get(string $id);
+
+    /**
+     * Mengembalikan true jika container dapat menemukan entri untuk identifier yang diberikan.
+     * Mengembalikan false sebaliknya.
+     *
+     * @param string $id Identifier entri yang akan diperiksa.
+     * @return bool
+     */
+    public function has(string $id): bool;
+
+    /**
+     * Mendaftarkan binding service baru.
+     *
+     * @param string $id ID unik untuk service.
+     * @param mixed $concrete Implementasi konkret atau callable factory.
+     * @param bool $shared Apakah instance harus di-share (singleton).
+     * @param bool $override Apakah binding yang sudah ada boleh ditimpa.
+     * @return void
+     */
+    public function bind(string $id, mixed $concrete, bool $shared = false, bool $override = false): void;
+
+    /**
+     * Membuat scope baru untuk container.
+     *
+     * @return static
+     */
+    public function createScope(): static;
+
+    /**
+     * Mendaftarkan callable provider.
+     *
+     * @param callable $provider Callable provider.
+     * @return void
+     */
+    public function registerProvider(callable $provider): void;
+
+    /**
+     * Mendaftarkan ekstensi ke container.
+     *
+     * @param ExtensionInterface $extension Ekstensi yang akan didaftarkan.
+     * @return void
+     */
+    public function registerExtension(ExtensionInterface $extension): void;
+
+    /**
+     * Menjalankan perintah CLI.
+     *
+     * @param string $name Nama perintah.
+     * @param array<string, mixed> $args Argumen perintah.
+     * @return int Kode keluar.
+     */
+    public function runCliCommand(string $name, array $args = []): int;
+
+    /**
+     * Mengambil dispatcher event.
+     *
+     * @return CoreEventDispatcherInterface
+     */
+    public function events(): CoreEventDispatcherInterface;
+
+    /**
+     * Melakukan boot pada container.
+     *
+     * @return void
+     */
+    public function boot(): void;
+
+    /**
+     * Mengambil registri binding.
+     *
+     * @return BindingRegistryInterface
+     */
+    public function getBindingRegistry(): BindingRegistryInterface;
+
+    /**
+     * Mengambil registri alias.
+     *
+     * @return AliasRegistryInterface
+     */
+    public function getAliasRegistry(): AliasRegistryInterface;
+
+    /**
+     * Mengambil registri instance.
+     *
+     * @return InstanceRegistryInterface
+     */
+    public function getInstanceRegistry(): InstanceRegistryInterface;
+
+    /**
+     * Mengambil registri ekstensi.
+     *
+     * @return ExtensionRegistryInterface
+     */
+    public function getExtensionRegistry(): ExtensionRegistryInterface;
+}
+/* ======== END OF Core/Container/Contracts/ContainerInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Contracts/AliasRegistryInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Contracts;
+
+interface AliasRegistryInterface extends DisposableInterface, CloneableInterface
+{
+    public function set(string $alias, string $target): void;
+    public function resolve(string $id): string;
+    public function all(): array;
+}
+/* ======== END OF Core/Container/Contracts/AliasRegistryInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Contracts/BindingRegistryInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Contracts;
+
+interface BindingRegistryInterface extends DisposableInterface, CloneableInterface
+{
+    public function bind(string $id, mixed $concrete, bool $shared = false, bool $override = false): void;
+    public function get(string $id): array;
+    public function has(string $id): bool;
+    public function all(): array;
+}
+/* ======== END OF Core/Container/Contracts/BindingRegistryInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Contracts/CloneableInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Contracts;
+
+interface CloneableInterface
+{
+    public function deepClone(): static;
+}
+/* ======== END OF Core/Container/Contracts/CloneableInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Contracts/CommandRegistryInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Contracts;
+
+use Core\Container\Cli\Contracts\CommandInterface;
+
+interface CommandRegistryInterface extends DisposableInterface, CloneableInterface
+{
+    public function register(CommandInterface $command, bool $override = false): void;
+    public function get(string $name): CommandInterface;
+    public function has(string $name): bool;
+    public function all(): array;
+}
+/* ======== END OF Core/Container/Contracts/CommandRegistryInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Contracts/ContainerAwareInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Contracts;
+
+interface ContainerAwareInterface
+{
+    public function setContainer(ContainerInterface $container): void;
+}
+/* ======== END OF Core/Container/Contracts/ContainerAwareInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Contracts/DecoratorRegistryInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Contracts;
+
+interface DecoratorRegistryInterface extends DisposableInterface, CloneableInterface
+{
+    public function register(string $id, string $decoratorFqcn, int $priority = 0): void;
+    public function getDecorators(string $id): array;
+    public function all(): array;
+}
+/* ======== END OF Core/Container/Contracts/DecoratorRegistryInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Contracts/DisposableInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Contracts;
+
+interface DisposableInterface
+{
+    public function dispose(): void;
+}
+/* ======== END OF Core/Container/Contracts/DisposableInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Contracts/DisposableRegistryInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Contracts;
+
+interface DisposableRegistryInterface extends DisposableInterface, CloneableInterface
+{
+    public function register(DisposableInterface $disposable): void;
+    public function all(): array;
+}
+/* ======== END OF Core/Container/Contracts/DisposableRegistryInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Contracts/ErrorManagerInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Contracts;
+
+use Throwable;
+
+interface ErrorManagerInterface extends DisposableInterface
+{
+    public function registerErrorHandler(): void;
+    public function handleException(Throwable $exception): void;
+    public function setLogger(LoggerInterface $logger): void;
+    public function addFatalErrorCallback(callable $callback): void;
+}
+/* ======== END OF Core/Container/Contracts/ErrorManagerInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Contracts/ExtensionInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Contracts;
+
+interface ExtensionInterface extends DisposableInterface, CloneableInterface
+{
+    public function register(ContainerInterface $container): void;
+    public function boot(ContainerInterface $container): void;
+    public function shutdown(ContainerInterface $container): void;
+    public function getSubscribedEvents(): iterable;
+}
+/* ======== END OF Core/Container/Contracts/ExtensionInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Contracts/ExtensionRegistryInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Contracts;
+
+interface ExtensionRegistryInterface extends DisposableInterface, CloneableInterface
+{
+    public function register(ExtensionInterface $extension, ContainerInterface $container): void;
+    public function bootAll(ContainerInterface $container): void;
+    public function shutdownAll(ContainerInterface $container): void;
+    public function all(): array;
+}
+/* ======== END OF Core/Container/Contracts/ExtensionRegistryInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Contracts/InstanceRegistryInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Contracts;
+
+interface InstanceRegistryInterface extends DisposableInterface, CloneableInterface
+{
+    public function set(string $id, mixed $instance): void;
+    public function get(string $id): mixed;
+    public function has(string $id): bool;
+    public function all(): array;
+}
+/* ======== END OF Core/Container/Contracts/InstanceRegistryInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Contracts/LifecycleManagerInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Contracts;
+
+interface LifecycleManagerInterface
+{
+    public function boot(): void;
+    public function shutdown(): void;
+}
+/* ======== END OF Core/Container/Contracts/LifecycleManagerInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Contracts/LoggerInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Contracts;
+
+interface LoggerInterface
+{
+    public function error(string|\Stringable $message, array $context = []): void;
+    public function critical(string|\Stringable $message, array $context = []): void;
+}
+/* ======== END OF Core/Container/Contracts/LoggerInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Contracts/ProfilerInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Contracts;
+
+interface ProfilerInterface
+{
+    public function start(string $label): void;
+    public function stop(string $label): void;
+    public function getProfileData(): array;
+}
+/* ======== END OF Core/Container/Contracts/ProfilerInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Contracts/ProviderRegistryInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Contracts;
+
+interface ProviderRegistryInterface extends DisposableInterface, CloneableInterface
+{
+    public function register(callable $provider): void;
+    public function all(): array;
+}
+/* ======== END OF Core/Container/Contracts/ProviderRegistryInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Contracts/ReflectionCacheInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Contracts;
+
+interface ReflectionCacheInterface extends DisposableInterface, CloneableInterface
+{
+    public function get(string $class): \ReflectionClass;
+}
+/* ======== END OF Core/Container/Contracts/ReflectionCacheInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Contracts/ServiceResolverInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Contracts;
+
+interface ServiceResolverInterface extends CloneableInterface
+{
+    public function resolve(string $id): mixed;
+}
+/* ======== END OF Core/Container/Contracts/ServiceResolverInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Contracts/TagRegistryInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Contracts;
+
+interface TagRegistryInterface extends DisposableInterface, CloneableInterface
+{
+    public function tag(string $serviceId, string $tagName): void;
+    public function getTagged(string $tagName): array;
+    public function hasTag(string $serviceId, string $tagName): bool;
+    public function all(): array;
+}
+/* ======== END OF Core/Container/Contracts/TagRegistryInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Registry/Adapters/BindingRegistry.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Registry\Adapters;
+
+use Core\Container\Contracts\BindingRegistryInterface;
+use Core\Container\Exceptions\ContainerException;
+use Core\Container\Exceptions\InvalidArgumentException;
+use Core\Container\Exceptions\NotFoundException;
+
+/*
+ * Implementasi untuk BindingRegistryInterface.
+ *
+ * Bertanggung jawab untuk mendaftarkan, mengambil, dan mengelola semua
+ * definisi service (bindings) di dalam container.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Registry/Adapters/BindingRegistry.php
+ */
+final class BindingRegistry implements BindingRegistryInterface
+{
+    /** @var array<string, array{concrete: mixed, shared: bool}> */
+    private array $bindings = [];
+
+    /**
+     * Mendaftarkan binding service baru.
+     *
+     * @param string $id ID unik untuk service.
+     * @param mixed $concrete Implementasi konkret atau callable factory.
+     * @param bool $shared Apakah instance harus di-share (singleton).
+     * @param bool $override Apakah binding yang sudah ada boleh ditimpa.
+     * @return void
+     * @throws InvalidArgumentException Jika ID kosong.
+     * @throws ContainerException Jika binding sudah ada dan override tidak diizinkan.
+     */
+    public function bind(string $id, mixed $concrete, bool $shared = false, bool $override = false): void
+    {
+        if (empty($id)) {
+            throw new InvalidArgumentException("ID binding tidak boleh kosong.");
+        }
+        if (isset($this->bindings[$id]) && !$override) {
+            throw new ContainerException("Binding '{$id}' sudah terdaftar. Gunakan override=true untuk menimpa.");
+        }
+        $this->bindings[$id] = ['concrete' => $concrete, 'shared' => $shared];
+    }
+
+    /**
+     * Mengambil definisi binding untuk ID tertentu.
+     *
+     * @param string $id ID service.
+     * @return array<string, mixed> Definisi binding.
+     * @throws NotFoundException Jika binding tidak ditemukan.
+     */
+    public function get(string $id): array
+    {
+        if (!$this->has($id)) {
+            throw new NotFoundException("Binding '{$id}' tidak ditemukan.");
+        }
+        return $this->bindings[$id];
+    }
+
+    /**
+     * Memeriksa apakah binding untuk ID tertentu sudah terdaftar.
+     *
+     * @param string $id ID service.
+     * @return bool True jika binding ada, false jika tidak.
+     */
+    public function has(string $id): bool
+    {
+        return isset($this->bindings[$id]);
+    }
+
+    /**
+     * Mengambil semua binding yang terdaftar.
+     *
+     * @return array<string, array{concrete: mixed, shared: bool}> Semua binding.
+     */
+    public function all(): array
+    {
+        return $this->bindings;
+    }
+
+    /**
+     * Melakukan operasi pembersihan sumber daya.
+     *
+     * @return void
+     */
+    public function dispose(): void
+    {
+        $this->bindings = [];
+    }
+
+    /**
+     * Membuat salinan mendalam (deep clone) dari objek.
+     *
+     * @return static
+     */
+    public function deepClone(): static
+    {
+        $clone = new static();
+        // Array yang berisi data primitif dan string dapat di-copy secara langsung (shallow copy cukup).
+        $clone->bindings = $this->bindings;
+        return $clone;
+    }
+}
+/* ======== END OF Core/Container/Registry/Adapters/BindingRegistry.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Registry/Adapters/AliasRegistry.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Registry\Adapters;
+
+use Core\Container\Contracts\AliasRegistryInterface;
+use Core\Container\Exceptions\InvalidArgumentException;
+
+/*
+ * Implementasi AliasRegistryInterface.
+ * Mengelola pemetaan alias ke ID service target.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Registry/Adapters/AliasRegistry.php
+ */
+final class AliasRegistry implements AliasRegistryInterface
+{
+    /** @var array<string, string> */
+    private array $aliases = [];
+
+    /**
+     * Menetapkan alias untuk target ID service.
+     *
+     * @param string $alias Alias.
+     * @param string $target Target ID service.
+     * @return void
+     * @throws InvalidArgumentException Jika alias atau target kosong.
+     */
+    public function set(string $alias, string $target): void
+    {
+        if (empty($alias) || empty($target)) {
+            throw new InvalidArgumentException("Alias dan target tidak boleh kosong.");
+        }
+        $this->aliases[$alias] = $target;
+    }
+
+    /**
+     * Mengurai alias menjadi ID service target. Jika tidak ada alias, kembalikan ID asli.
+     *
+     * @param string $id Alias atau ID service.
+     * @return string ID service target.
+     */
+    public function resolve(string $id): string
+    {
+        return $this->aliases[$id] ?? $id;
+    }
+
+    /**
+     * Mengambil semua alias yang terdaftar.
+     *
+     * @return array<string, string>
+     */
+    public function all(): array
+    {
+        return $this->aliases;
+    }
+
+    /**
+     * Melakukan operasi pembersihan sumber daya.
+     *
+     * @return void
+     */
+    public function dispose(): void
+    {
+        $this->aliases = [];
+    }
+
+    /**
+     * Membuat salinan mendalam (deep clone) dari objek.
+     *
+     * @return static
+     */
+    public function deepClone(): static
+    {
+        $clone = new self();
+        $clone->aliases = $this->aliases;
+        return $clone;
+    }
+}
+/* ======== END OF Core/Container/Registry/Adapters/AliasRegistry.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Registry/Adapters/CommandRegistry.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Registry\Adapters;
+
+use Core\Container\Cli\Contracts\CommandInterface;
+use Core\Container\Contracts\CommandRegistryInterface;
+use Core\Container\Exceptions\InvalidArgumentException;
+use Core\Container\Exceptions\NotFoundException;
+use Core\Container\Contracts\CloneableInterface;
+
+/*
+ * Implementasi CommandRegistryInterface.
+ * Mengelola registrasi semua perintah CLI yang tersedia.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Registry/Adapters/CommandRegistry.php
+ */
+final class CommandRegistry implements CommandRegistryInterface
+{
+    /** @var array<string, CommandInterface> */
+    private array $commands = [];
+
+    /**
+     * Mendaftarkan perintah CLI.
+     *
+     * @param \Core\Container\Cli\Contracts\CommandInterface $command Instance perintah CLI.
+     * @param bool $override Apakah penimpaan diizinkan jika perintah sudah ada.
+     * @return void
+     * @throws \Core\Container\Exceptions\InvalidArgumentException Jika nama perintah kosong atau sudah ada tanpa izin override.
+     */
+    public function register(CommandInterface $command, bool $override = false): void
+    {
+        $name = $command->getName();
+        if (empty($name)) {
+            throw new InvalidArgumentException("Nama perintah tidak boleh kosong.");
+        }
+        
+        // INI PERUBAHANNYA: Logika pengecekan override yang lebih ketat
+        if (isset($this->commands[$name]) && !$override) {
+            throw new InvalidArgumentException("Perintah '{$name}' sudah terdaftar. Gunakan override=true untuk menimpa.");
+        }
+
+        $this->commands[$name] = $command;
+    }
+
+    /**
+     * Mengambil perintah CLI berdasarkan nama.
+     *
+     * @param string $name Nama perintah.
+     * @return CommandInterface Instance perintah CLI.
+     * @throws NotFoundException Jika perintah tidak ditemukan.
+     */
+    public function get(string $name): CommandInterface
+    {
+        if (!$this->has($name)) {
+            throw new NotFoundException("Perintah CLI '{$name}' tidak ditemukan.");
+        }
+        return $this->commands[$name];
+    }
+
+    /**
+     * Memeriksa apakah perintah untuk nama tertentu sudah terdaftar.
+     *
+     * @param string $name Nama perintah.
+     * @return bool True jika perintah ada, false jika tidak.
+     */
+    public function has(string $name): bool
+    {
+        return isset($this->commands[$name]);
+    }
+
+    /**
+     * Mengambil semua perintah CLI yang terdaftar.
+     *
+     * @return array<string, CommandInterface>
+     */
+    public function all(): array
+    {
+        return $this->commands;
+    }
+
+    /**
+     * Melakukan operasi pembersihan sumber daya.
+     *
+     * @return void
+     */
+    public function dispose(): void
+    {
+        $this->commands = [];
+    }
+
+    /**
+     * Membuat salinan mendalam (deep clone) dari objek.
+     *
+     * @return static
+     */
+    public function deepClone(): static
+    {
+        $clone = new self();
+        foreach ($this->commands as $name => $command) {
+            $clone->commands[$name] = ($command instanceof CloneableInterface)
+                ? $command->deepClone()
+                : clone $command;
+        }
+        return $clone;
+    }
+}
+/* ======== END OF Core/Container/Registry/Adapters/CommandRegistry.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Registry/Adapters/DecoratorRegistry.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Registry\Adapters;
+
+use Core\Container\Contracts\DecoratorRegistryInterface;
+use Core\Container\Exceptions\InvalidArgumentException;
+
+/*
+ * Implementasi DecoratorRegistryInterface.
+ * Mengelola registrasi decorator untuk service.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Registry/Adapters/DecoratorRegistry.php
+ */
+final class DecoratorRegistry implements DecoratorRegistryInterface
+{
+    /** @var array<string, array<int, string[]>> */
+    private array $decorators = [];
+
+    /**
+     * Mendaftarkan decorator untuk ID service tertentu.
+     *
+     * @param string $id ID service yang akan didekorasi.
+     * @param string $decoratorFqcn FQCN dari kelas decorator.
+     * @param int $priority Prioritas decorator (lebih tinggi dieksekusi lebih dulu).
+     * @return void
+     * @throws InvalidArgumentException Jika ID atau FQCN kosong atau class tidak ada.
+     */
+    public function register(string $id, string $decoratorFqcn, int $priority = 0): void
+    {
+        if (empty($id) || empty($decoratorFqcn)) {
+            throw new InvalidArgumentException("ID service dan FQCN decorator tidak boleh kosong.");
+        }
+        if (!class_exists($decoratorFqcn)) {
+            throw new InvalidArgumentException("Kelas decorator '{$decoratorFqcn}' tidak ditemukan.");
+        }
+        $this->decorators[$id][$priority][] = $decoratorFqcn;
+        krsort($this->decorators[$id], SORT_NUMERIC); // Urutkan berdasarkan prioritas
+    }
+
+    /**
+     * Mengambil semua decorator untuk ID service tertentu, diurutkan berdasarkan prioritas.
+     *
+     * @param string $id ID service.
+     * @return array<int, string> Daftar FQCN decorator.
+     */
+    public function getDecorators(string $id): array
+    {
+        if (!isset($this->decorators[$id])) {
+            return [];
+        }
+        // Flatten the array of priorities into a single list of decorators
+        return array_merge(...array_values($this->decorators[$id]));
+    }
+
+    /**
+     * Mengambil semua decorator yang terdaftar.
+     *
+     * @return array<string, array<int, string[]>>
+     */
+    public function all(): array
+    {
+        return $this->decorators;
+    }
+
+    /**
+     * Melakukan operasi pembersihan sumber daya.
+     *
+     * @return void
+     */
+    public function dispose(): void
+    {
+        $this->decorators = [];
+    }
+
+    /**
+     * Membuat salinan mendalam (deep clone) dari objek.
+     *
+     * @return static
+     */
+    public function deepClone(): static
+    {
+        $clone = new self();
+        $clone->decorators = $this->decorators;
+        return $clone;
+    }
+}
+/* ======== END OF Core/Container/Registry/Adapters/DecoratorRegistry.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Registry/Adapters/InstanceRegistry.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Registry\Adapters;
+
+use Core\Container\Contracts\CloneableInterface;
+use Core\Container\Contracts\InstanceRegistryInterface;
+use Core\Container\Exceptions\InvalidArgumentException;
+use Core\Container\Exceptions\NotFoundException;
+
+/*
+ * Implementasi InstanceRegistryInterface.
+ * Menyimpan instance service yang bersifat shared (singleton).
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Registry/Adapters/InstanceRegistry.php
+ */
+final class InstanceRegistry implements InstanceRegistryInterface
+{
+    /** @var array<string, mixed> */
+    private array $instances = [];
+
+    /**
+     * Menyimpan instance service.
+     *
+     * @param string $id ID service.
+     * @param mixed $instance Instance service.
+     * @return void
+     * @throws InvalidArgumentException Jika ID kosong.
+     */
+    public function set(string $id, mixed $instance): void
+    {
+        if (empty($id)) {
+            throw new InvalidArgumentException("ID instance tidak boleh kosong.");
+        }
+        $this->instances[$id] = $instance;
+    }
+
+    /**
+     * Mengambil instance service berdasarkan ID.
+     *
+     * @param string $id ID service.
+     * @return mixed Instance service.
+     * @throws NotFoundException Jika instance tidak ditemukan.
+     */
+    public function get(string $id): mixed
+    {
+        if (!$this->has($id)) {
+            throw new NotFoundException("Instance '{$id}' tidak ditemukan.");
+        }
+        return $this->instances[$id];
+    }
+
+    /**
+     * Memeriksa apakah instance untuk ID tertentu sudah ada.
+     *
+     * @param string $id ID service.
+     * @return bool True jika instance ada, false jika tidak.
+     */
+    public function has(string $id): bool
+    {
+        return isset($this->instances[$id]);
+    }
+
+    /**
+     * Mengambil semua instance yang terdaftar.
+     *
+     * @return array<string, mixed>
+     */
+    public function all(): array
+    {
+        return $this->instances;
+    }
+
+    /**
+     * Melakukan operasi pembersihan sumber daya.
+     *
+     * @return void
+     */
+    public function dispose(): void
+    {
+        $this->instances = [];
+    }
+
+    /**
+     * Membuat salinan mendalam (deep clone) dari objek.
+     *
+     * @return static
+     */
+    public function deepClone(): static
+    {
+        $clone = new self();
+        foreach ($this->instances as $id => $instance) {
+            if ($instance instanceof CloneableInterface) {
+                $clone->instances[$id] = $instance->deepClone();
+            } elseif(is_object($instance)) {
+                $clone->instances[$id] = clone $instance;
+            } else {
+                $clone->instances[$id] = $instance;
+            }
+        }
+        return $clone;
+    }
+}
+/* ======== END OF Core/Container/Registry/Adapters/InstanceRegistry.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Registry/Adapters/DisposableRegistry.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Registry\Adapters;
+
+use Core\Container\Contracts\DisposableInterface;
+use Core\Container\Contracts\DisposableRegistryInterface;
+use Core\Container\Exceptions\InvalidArgumentException;
+
+/*
+ * Implementasi DisposableRegistryInterface.
+ * Mengelola semua service yang memerlukan operasi pembersihan saat shutdown.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Registry/Adapters/DisposableRegistry.php
+ */
+final class DisposableRegistry implements DisposableRegistryInterface
+{
+    /** @var array<string, DisposableInterface> */
+    private array $disposables = [];
+
+    /**
+     * Mendaftarkan objek yang dapat dibuang.
+     *
+     * @param DisposableInterface $disposable Objek yang dapat dibuang.
+     * @return void
+     * @throws InvalidArgumentException Jika objek yang sama sudah terdaftar.
+     */
+    public function register(DisposableInterface $disposable): void
+    {
+        $hash = spl_object_hash($disposable);
+        if (isset($this->disposables[$hash])) {
+            return; // Hindari error jika objek yang sama didaftarkan berkali-kali.
+        }
+        $this->disposables[$hash] = $disposable;
+    }
+    
+    /**
+     * Menjalankan metode dispose() pada semua objek yang terdaftar.
+     *
+     * @return void
+     */
+    public function dispose(): void
+    {
+        $exceptions = [];
+        foreach ($this->disposables as $hash => $disposable) {
+            try {
+                $disposable->dispose();
+            } catch (\Throwable $e) {
+                // Kumpulkan semua exception, jangan hentikan loop.
+                $exceptions[] = $e;
+            }
+        }
+    
+        $this->disposables = [];
+
+        if (!empty($exceptions)) {
+            // Jika ada error, laporkan setelah mencoba semua.
+            // Bisa juga dilempar sebagai AggregateException jika ada.
+            // Untuk saat ini, kita bisa lempar yang pertama atau log semua.
+            throw new \Core\Container\Exceptions\ContainerException(
+                'Satu atau lebih service gagal di-dispose. Exception pertama: ' . $exceptions[0]->getMessage(),
+                0,
+                $exceptions[0]
+            );
+        }
+    }
+    
+    /**
+     * Mengambil semua objek disposable yang terdaftar.
+     *
+     * @return DisposableInterface[]
+     */
+    public function all(): array
+    {
+        return array_values($this->disposables);
+    }
+
+    /**
+     * Membuat salinan mendalam (deep clone) dari objek.
+     *
+     * @return static
+     */
+    public function deepClone(): static
+    {
+        $clone = new self();
+        foreach ($this->disposables as $hash => $disposable) {
+            $clone->disposables[$hash] = $disposable->deepClone();
+        }
+        return $clone;
+    }
+}
+/* ======== END OF Core/Container/Registry/Adapters/DisposableRegistry.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Registry/Adapters/ExtensionRegistry.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Registry\Adapters;
+
+use Core\Container\Contracts\ContainerInterface;
+use Core\Container\Contracts\ExtensionInterface;
+use Core\Container\Contracts\ExtensionRegistryInterface;
+use Core\Container\Exceptions\ContainerException;
+use Core\Container\Exceptions\InvalidArgumentException;
+
+/*
+ * Implementasi ExtensionRegistryInterface.
+ * Mengelola registrasi dan siklus hidup (boot, shutdown) ekstensi container.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Registry/Adapters/ExtensionRegistry.php
+ */
+final class ExtensionRegistry implements ExtensionRegistryInterface
+{
+    /** @var array<string, ExtensionInterface> */
+    private array $extensions = [];
+    private bool $booted = false;
+
+    /**
+     * Mendaftarkan ekstensi ke container.
+     *
+     * @param ExtensionInterface $extension Ekstensi yang akan didaftarkan.
+     * @param ContainerInterface $container Container.
+     * @return void
+     * @throws ContainerException Jika mendaftar setelah fase boot.
+     */
+    public function register(ExtensionInterface $extension, ContainerInterface $container): void
+    {
+        if ($this->booted) {
+            throw new ContainerException("Tidak dapat mendaftarkan ekstensi setelah container di-boot.");
+        }
+        $hash = spl_object_hash($extension);
+        if (isset($this->extensions[$hash])) {
+            return; // Ekstensi yang sama sudah terdaftar, abaikan.
+        }
+        
+        $this->extensions[$hash] = $extension;
+        $extension->register($container);
+
+        foreach ($extension->getSubscribedEvents() as $eventName => $listener) {
+            $container->events()->addListener($eventName, $listener);
+        }
+    }
+
+    /**
+     * Menjalankan fase boot untuk semua ekstensi yang terdaftar.
+     *
+     * @param ContainerInterface $container Container.
+     * @return void
+     */
+    public function bootAll(ContainerInterface $container): void
+    {
+        if ($this->booted) {
+            return;
+        }
+        foreach ($this->extensions as $extension) {
+            $extension->boot($container);
+        }
+        $this->booted = true;
+    }
+
+    /**
+     * Menjalankan fase shutdown untuk semua ekstensi yang terdaftar.
+     * Proses ini akan mencoba menjalankan shutdown pada semua ekstensi
+     * bahkan jika salah satunya gagal.
+     *
+     * @param \Core\Container\Contracts\ContainerInterface $container Container.
+     * @return void
+     * @throws \Core\Container\Exceptions\ContainerException Jika ada satu atau lebih kegagalan.
+     */
+    public function shutdownAll(\Core\Container\Contracts\ContainerInterface $container): void
+    {
+        if (!$this->booted) {
+            return;
+        }
+
+        $exceptions = [];
+        // Jalankan shutdown dalam urutan terbalik dari registrasi
+        foreach (array_reverse($this->extensions) as $extension) {
+            try {
+                $extension->shutdown($container);
+            } catch (\Throwable $e) {
+                $exceptions[] = $e;
+            }
+        }
+
+        $this->booted = false;
+
+        if (!empty($exceptions)) {
+            throw new \Core\Container\Exceptions\ContainerException(
+                'Satu atau lebih ekstensi gagal saat shutdown. Exception pertama: ' . $exceptions[0]->getMessage(),
+                0,
+                $exceptions[0]
+            );
+        }
+    }
+
+    /**
+     * Mengambil semua ekstensi yang terdaftar.
+     *
+     * @return ExtensionInterface[]
+     */
+    public function all(): array
+    {
+        return array_values($this->extensions);
+    }
+
+    /**
+     * Melakukan operasi pembersihan sumber daya.
+     *
+     * @return void
+     */
+    public function dispose(): void
+    {
+        foreach ($this->extensions as $extension) {
+            $extension->dispose();
+        }
+        $this->extensions = [];
+        $this->booted = false;
+    }
+
+    /**
+     * Membuat salinan mendalam (deep clone) dari objek.
+     *
+     * @return static
+     */
+    public function deepClone(): static
+    {
+        $clone = new self();
+        foreach ($this->extensions as $hash => $extension) {
+            $clone->extensions[$hash] = $extension->deepClone();
+        }
+        $clone->booted = $this->booted;
+        return $clone;
+    }
+}
+/* ======== END OF Core/Container/Registry/Adapters/ExtensionRegistry.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Registry/Adapters/ProviderRegistry.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Registry\Adapters;
+
+use Core\Container\Contracts\ProviderRegistryInterface;
+use Core\Container\Exceptions\InvalidArgumentException;
+
+/*
+ * Implementasi ProviderRegistryInterface.
+ * Mengelola registrasi callable provider.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Registry/Adapters/ProviderRegistry.php
+ */
+final class ProviderRegistry implements ProviderRegistryInterface
+{
+    /** @var callable[] */
+    private array $providers = [];
+
+    /**
+     * Mendaftarkan callable provider.
+     *
+     * @param callable $provider Callable provider.
+     * @return void
+     */
+    public function register(callable $provider): void
+    {
+        $this->providers[] = $provider;
+    }
+
+    /**
+     * Mengambil semua provider yang terdaftar.
+     *
+     * @return callable[]
+     */
+    public function all(): array
+    {
+        return $this->providers;
+    }
+
+    /**
+     * Melakukan operasi pembersihan sumber daya.
+     *
+     * @return void
+     */
+    public function dispose(): void
+    {
+        $this->providers = [];
+    }
+
+    /**
+     * Membuat salinan mendalam (deep clone) dari objek.
+     *
+     * @return static
+     */
+    public function deepClone(): static
+    {
+        $clone = new self();
+        // Callable tidak bisa di-clone secara mendalam, jadi ini adalah shallow copy.
+        $clone->providers = $this->providers;
+        return $clone;
+    }
+}
+/* ======== END OF Core/Container/Registry/Adapters/ProviderRegistry.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Registry/Adapters/ReflectionCache.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Registry\Adapters;
+
+use Core\Container\Contracts\ReflectionCacheInterface;
+use ReflectionClass;
+use ReflectionException;
+
+/*
+ * Implementasi ReflectionCacheInterface.
+ * Menyimpan objek ReflectionClass untuk meningkatkan performa.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Registry/Adapters/ReflectionCache.php
+ */
+final class ReflectionCache implements ReflectionCacheInterface
+{
+    /** @var array<string, ReflectionClass> */
+    private array $cache = [];
+
+    /**
+     * Mengambil objek ReflectionClass untuk nama kelas tertentu.
+     *
+     * @param string $class Nama kelas (FQCN).
+     * @return ReflectionClass Objek refleksi.
+     * @throws ReflectionException Jika kelas tidak ada.
+     */
+    public function get(string $class): ReflectionClass
+    {
+        if (!isset($this->cache[$class])) {
+            $this->cache[$class] = new ReflectionClass($class);
+        }
+        return $this->cache[$class];
+    }
+
+    /**
+     * Melakukan operasi pembersihan sumber daya.
+     *
+     * @return void
+     */
+    public function dispose(): void
+    {
+        $this->cache = [];
+    }
+
+    /**
+     * Membuat salinan mendalam (deep clone) dari objek.
+     *
+     * @return static
+     */
+    public function deepClone(): static
+    {
+        $clone = new self();
+        // Objek ReflectionClass tidak perlu di-clone, shallow copy cache sudah cukup.
+        $clone->cache = $this->cache;
+        return $clone;
+    }
+}
+/* ======== END OF Core/Container/Registry/Adapters/ReflectionCache.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Registry/Adapters/TagRegistry.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Registry\Adapters;
+
+use Core\Container\Contracts\TagRegistryInterface;
+use Core\Container\Exceptions\InvalidArgumentException;
+
+/*
+ * Implementasi TagRegistryInterface.
+ * Mengelola tagging service untuk memungkinkan pengambilan service berdasarkan kategori.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Registry/Adapters/TagRegistry.php
+ */
+final class TagRegistry implements TagRegistryInterface
+{
+    /** @var array<string, array<string, true>> ['tag_name' => ['service_id' => true]] */
+    private array $tags = [];
+
+    /**
+     * Menambahkan tag ke service ID.
+     *
+     * @param string $serviceId ID service yang akan di-tag.
+     * @param string $tagName Nama tag.
+     * @return void
+     * @throws InvalidArgumentException Jika serviceId atau tagName kosong.
+     */
+    public function tag(string $serviceId, string $tagName): void
+    {
+        if (empty($serviceId) || empty($tagName)) {
+            throw new InvalidArgumentException("Service ID dan nama tag tidak boleh kosong.");
+        }
+        $this->tags[$tagName][$serviceId] = true;
+    }
+
+    /**
+     * Mengambil service ID yang terkait dengan tag tertentu.
+     *
+     * @param string $tagName Nama tag.
+     * @return string[] Daftar service ID.
+     */
+    public function getTagged(string $tagName): array
+    {
+        return isset($this->tags[$tagName]) ? array_keys($this->tags[$tagName]) : [];
+    }
+
+    /**
+     * Memeriksa apakah service ID memiliki tag tertentu.
+     *
+     * @param string $serviceId ID service.
+     * @param string $tagName Nama tag.
+     * @return bool
+     */
+    public function hasTag(string $serviceId, string $tagName): bool
+    {
+        return isset($this->tags[$tagName][$serviceId]);
+    }
+
+    /**
+     * Mengambil semua tag dan service ID terkait.
+     *
+     * @return array<string, string[]>
+     */
+    public function all(): array
+    {
+        $result = [];
+        foreach ($this->tags as $tagName => $serviceIds) {
+            $result[$tagName] = array_keys($serviceIds);
+        }
+        return $result;
+    }
+
+    /**
+     * Melakukan operasi pembersihan sumber daya.
+     *
+     * @return void
+     */
+    public function dispose(): void
+    {
+        $this->tags = [];
+    }
+
+    /**
+     * Membuat salinan mendalam (deep clone) dari objek.
+     *
+     * @return static
+     */
+    public function deepClone(): static
+    {
+        $clone = new self();
+        $clone->tags = $this->tags;
+        return $clone;
+    }
+}
+/* ======== END OF Core/Container/Registry/Adapters/TagRegistry.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Builder/ContainerBuilder.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Builder;
+
+use Core\Container\Adapter\DefaultContainer;
+use Core\Container\Builder\DTOs\ContainerDefinition;
+use Core\Container\Cli\Adapter\CliRunner;
+use Core\Container\Cli\Adapter\DefaultTableRenderer;
+use Core\Container\Compiler\Adapter\ReflectionClassInspector;
+use Core\Container\Compiler\Contracts\ClassInspectorInterface;
+use Core\Container\Compiler\Contracts\CompilerPassInterface;
+use Core\Container\Contracts\ContainerAwareInterface;
+use Core\Container\Contracts\ContainerInterface;
+use Core\Container\Contracts\ErrorManagerInterface;
+use Core\Container\Contracts\LoggerInterface;
+use Core\Container\Contracts\ProfilerInterface;
+use Core\Container\Error\Adapter\DefaultErrorManager;
+use Core\Container\Event\Adapter\DefaultEventDispatcher;
+use Core\Container\Event\Adapter\DefaultListenerResolver;
+use Core\Container\Exceptions\ContainerException;
+use Core\Container\Exceptions\InvalidArgumentException;
+use Core\Container\Internal\LifecycleManager;
+use Core\Container\Internal\ServiceResolver;
+use Core\Container\Logger\Adapter\NullLogger;
+use Core\Container\Profiler\Adapter\NullProfiler;
+use Core\Container\Registry\Adapters as Registry;
+use Throwable;
+
+/*
+ * ContainerBuilder yang disempurnakan dengan DI sejati untuk Compiler Pass,
+ * implementasi build() yang lengkap, dan integrasi ErrorManager.
+ *
+ * Ini adalah 'Composition Root' dari aplikasi, tempat semua service
+ * dan dependensinya dirakit bersama sebelum aplikasi berjalan.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Builder/ContainerBuilder.php
+ */
+final class ContainerBuilder
+{
+    /** @var array<string, callable> */
+    private array $factories = [];
+
+    /** @var array<string, array{concrete: mixed, shared: bool}> */
+    private array $bindings = [];
+
+    /** @var array<string, string> */
+    private array $aliases = [];
+
+    /** @var array<string, mixed> */
+    private array $contextual = [];
+
+    /** @var array<string, array<string>> */
+    private array $tags = [];
+
+    /** @var array<int, array<CompilerPassInterface|string>> */
+    private array $passes = [];
+
+    /** @var array<string, object> */
+    private array $buildTimeServices = [];
+
+    /**
+     * Konstruktor ContainerBuilder.
+     */
+    public function __construct()
+    {
+        $this->setDefaultFactories();
+        
+        // Menyediakan service yang tersedia saat proses build
+        $this->buildTimeServices[ClassInspectorInterface::class] = new ReflectionClassInspector();
+        // Logger dan Profiler default juga tersedia saat build-time untuk pass
+        $this->buildTimeServices[LoggerInterface::class] = ($this->getFactory('logger'))();
+        $this->buildTimeServices[ProfilerInterface::class] = ($this->getFactory('profiler'))();
+        $this->buildTimeServices[ErrorManagerInterface::class] = ($this->getFactory('error_manager'))();
+    }
+
+    /**
+     * Menambahkan compiler pass ke builder.
+     *
+     * @param CompilerPassInterface|string $pass Instance compiler pass atau FQCN-nya.
+     * @param int $priority Prioritas eksekusi (lebih tinggi dieksekusi lebih dulu).
+     * @return self
+     */
+    public function addPass(CompilerPassInterface|string $pass, int $priority = 0): self
+    {
+        $this->passes[$priority][] = $pass;
+        return $this;
+    }
+
+    /**
+     * Menambahkan service yang tersedia selama proses build (untuk diinject ke Compiler Pass).
+     *
+     * @param string $id ID service (biasanya FQCN interface).
+     * @param object $service Instance service.
+     * @return self
+     * @throws InvalidArgumentException Jika ID kosong atau service bukan objek.
+     * @throws ContainerException Jika service ID sudah terdaftar.
+     */
+    public function addBuildTimeService(string $id, object $service): self
+    {
+        if (empty($id)) {
+            throw new InvalidArgumentException("ID service build-time tidak boleh kosong.");
+        }
+        if (!is_object($service)) {
+            throw new InvalidArgumentException("Service build-time harus berupa objek.");
+        }
+        if (isset($this->buildTimeServices[$id])) {
+            throw new ContainerException("Service build-time dengan ID '{$id}' sudah terdaftar.");
+        }
+        $this->buildTimeServices[$id] = $service;
+        return $this;
+    }
+    
+    /**
+     * Memuat konfigurasi builder dari array.
+     *
+     * @param array<string, mixed> $config Array konfigurasi.
+     * @return self
+     */
+    public function loadFromConfig(array $config): self
+    {
+        $this->bindings = $config['bindings'] ?? [];
+        $this->aliases = $config['aliases'] ?? [];
+        $this->contextual = $config['contextual'] ?? [];
+        $this->tags = $config['tags'] ?? [];
+
+        if (isset($config['factories']) && is_array($config['factories'])) {
+            foreach ($config['factories'] as $key => $factory) {
+                if (is_callable($factory)) {
+                    $this->setFactory($key, $factory);
+                } else {
+                    $this->buildTimeServices[LoggerInterface::class]->error("Factory untuk kunci '{$key}' harus berupa callable. Dilewati.");
+                }
+            }
+        }
+        if (isset($config['compiler_passes']) && is_array($config['compiler_passes'])) {
+            foreach ($config['compiler_passes'] as $passConfig) {
+                if (is_array($passConfig) && isset($passConfig['class'])) {
+                    $this->addPass($passConfig['class'], $passConfig['priority'] ?? 0);
+                } elseif (is_string($passConfig)) {
+                    $this->addPass($passConfig);
+                } else {
+                    $this->buildTimeServices[LoggerInterface::class]->error("Definisi compiler pass tidak valid. Dilewati.");
+                }
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Membangun instance Container.
+     *
+     * @param string $environment Lingkungan aplikasi.
+     * @return ContainerInterface
+     * @throws ContainerException Jika ada masalah selama proses pembangunan.
+     */
+    public function build(string $environment = 'production'): ContainerInterface
+    {
+        $logger = $this->buildTimeServices[LoggerInterface::class];
+        $profiler = $this->buildTimeServices[ProfilerInterface::class];
+        $errorManager = $this->buildTimeServices[ErrorManagerInterface::class];
+
+        // Set logger untuk ErrorManager dan daftarkan handler global
+        if ($errorManager instanceof DefaultErrorManager) {
+            $errorManager->setLogger($logger);
+            $errorManager->registerErrorHandler();
+        }
+
+        try {
+            // 1. Buat DTO ContainerDefinition dari konfigurasi yang telah dimuat.
+            $definition = new ContainerDefinition(
+                $this->bindings,
+                $this->aliases,
+                $this->contextual,
+                $this->factories,
+                $this->tags
+            );
+            
+            // 2. Jalankan semua Compiler Pass pada definisi.
+            $this->runCompilerPasses($definition);
+
+            // 3. Ambil kembali definisi yang telah diproses.
+            $this->bindings = $definition->getBindings();
+            $this->aliases = $definition->getAliases();
+            $this->tags = $definition->getTags();
+
+            // 4. Bangun registri awal menggunakan definisi yang sudah matang.
+            $registries = $this->buildInitialRegistries();
+
+            foreach ($this->bindings as $id => $def) {
+                $registries['binding']->bind($id, $def['concrete'], $def['shared'] ?? false, true);
+            }
+            foreach ($this->aliases as $alias => $target) {
+                $registries['alias']->set($alias, $target);
+            }
+            foreach ($this->tags as $tagName => $serviceIds) {
+                foreach ($serviceIds as $serviceId) {
+                    $registries['tag']->tag($serviceId, $tagName);
+                }
+            }
+
+            // 5. Bangun dependensi inti container.
+            $dependencies = $registries + ['contextual' => $this->contextual];
+            $dependencies['logger'] = $logger;
+            $dependencies['profiler'] = $profiler;
+            $dependencies['error_manager'] = $errorManager;
+
+            $listenerResolver = ($this->getFactory('listener_resolver'))();
+            $dependencies['event_dispatcher'] = ($this->getFactory('event_dispatcher'))(['listener_resolver' => $listenerResolver] + $dependencies);
+            $dependencies['service_resolver'] = ($this->getFactory('service_resolver'))($dependencies);
+            $dependencies['lifecycle_manager'] = ($this->getFactory('lifecycle_manager'))($dependencies);
+            $dependencies['table_renderer'] = ($this->getFactory('table_renderer'))();
+            $dependencies['cli_runner'] = ($this->getFactory('cli_runner'))(['table_renderer' => $dependencies['table_renderer']] + $dependencies);
+
+            // 6. Buat instance DefaultContainer dengan semua dependensi.
+            $container = new DefaultContainer(
+                $environment,
+                $dependencies['service_resolver'],
+                $dependencies['lifecycle_manager'],
+                $dependencies['cli_runner'],
+                $dependencies['event_dispatcher'],
+                $registries['binding'],
+                $registries['instance'],
+                $registries['alias'],
+                $registries['extension'],
+                $registries['provider']
+            );
+
+            // 7. Inject container ke service yang ContainerAware.
+            $containerAwareServices = [
+                $listenerResolver,
+                $dependencies['service_resolver'],
+                $dependencies['lifecycle_manager'],
+            ];
+            foreach ($containerAwareServices as $service) {
+                if ($service instanceof ContainerAwareInterface) {
+                    $service->setContainer($container);
+                }
+            }
+
+            return $container;
+        } catch (Throwable $e) {
+            // Tangani error selama proses build melalui ErrorManager
+            $errorManager->handleException($e);
+            throw new ContainerException("Gagal membangun container: " . $e->getMessage(), (int)$e->getCode(), $e);
+        }
+    }
+
+    /**
+     * Menetapkan factory untuk service inti.
+     *
+     * @param string $key Kunci service.
+     * @param callable $factory Callable factory.
+     * @return self
+     */
+    public function setFactory(string $key, callable $factory): self
+    {
+        $this->factories[$key] = $factory;
+        return $this;
+    }
+
+    /**
+     * Mendefinisikan factory default untuk service inti.
+     *
+     * @return void
+     */
+    private function setDefaultFactories(): void
+    {
+        $this->setFactory('logger', fn() => new NullLogger());
+        $this->setFactory('profiler', fn() => new NullProfiler());
+        $this->setFactory('error_manager', fn() => new DefaultErrorManager());
+        $this->setFactory('listener_resolver', fn() => new DefaultListenerResolver());
+        $this->setFactory('event_dispatcher', fn(array $deps) => new DefaultEventDispatcher($deps['listener_resolver'], $deps['profiler']));
+        $this->setFactory('service_resolver', fn(array $deps) => new ServiceResolver($deps['binding'], $deps['instance'], $deps['alias'], $deps['decorator'], $deps['disposable'], $deps['reflection'], $deps['event_dispatcher'], $deps['error_manager']));
+        $this->setFactory('lifecycle_manager', fn(array $deps) => new LifecycleManager($deps['extension'], $deps['event_dispatcher'], $deps['disposable'], $deps['error_manager']));
+        $this->setFactory('table_renderer', fn() => new DefaultTableRenderer());
+        $this->setFactory('cli_runner', fn(array $deps) => new CliRunner($deps['command'], $deps['logger'], $deps['table_renderer'], $deps['error_manager']));
+    }
+
+    /**
+     * Membangun registri-registri awal yang dibutuhkan oleh container.
+     *
+     * @return array<string, \Core\Container\Contracts\DisposableInterface&\Core\Container\Contracts\CloneableInterface>
+     */
+    private function buildInitialRegistries(): array
+    {
+        return [
+            'binding' => new Registry\BindingRegistry(),
+            'instance' => new Registry\InstanceRegistry(),
+            'alias' => new Registry\AliasRegistry(),
+            'extension' => new Registry\ExtensionRegistry(),
+            'command' => new Registry\CommandRegistry(),
+            'disposable' => new Registry\DisposableRegistry(),
+            'decorator' => new Registry\DecoratorRegistry(),
+            'reflection' => new Registry\ReflectionCache(),
+            'provider' => new Registry\ProviderRegistry(),
+            'tag' => new Registry\TagRegistry(),
+        ];
+    }
+
+    /**
+     * Mengambil factory berdasarkan kunci.
+     *
+     * @param string $key Kunci factory.
+     * @return callable
+     * @throws InvalidArgumentException Jika factory tidak ditemukan.
+     */
+    private function getFactory(string $key): callable
+    {
+        if (!isset($this->factories[$key])) {
+            throw new InvalidArgumentException("Factory untuk kunci '{$key}' tidak ditemukan.");
+        }
+        return $this->factories[$key];
+    }
+
+    /**
+     * Menjalankan semua Compiler Pass pada definisi container.
+     *
+     * @param ContainerDefinition $definition Definisi container yang akan diproses.
+     * @return void
+     * @throws ContainerException Jika ada masalah dengan compiler pass.
+     */
+    private function runCompilerPasses(ContainerDefinition $definition): void
+    {
+        if (empty($this->passes)) {
+            return;
+        }
+
+        // Urutkan pass berdasarkan prioritas (tertinggi lebih dulu)
+        krsort($this->passes, SORT_NUMERIC);
+        $sortedPasses = array_merge(...$this->passes);
+
+        foreach ($sortedPasses as $pass) {
+            $passIdentifier = is_string($pass) ? $pass : get_class($pass);
+            try {
+                $passInstance = $this->resolvePass($pass);
+                $passInstance->process($definition);
+            } catch (Throwable $e) {
+                $this->buildTimeServices[ErrorManagerInterface::class]->handleException($e);
+                throw new ContainerException("Gagal menjalankan compiler pass '{$passIdentifier}': " . $e->getMessage(), (int)$e->getCode(), $e);
+            }
+        }
+    }
+
+    /**
+     * Me-resolve instance Compiler Pass, mendukung DI untuk dependensinya.
+     *
+     * @param CompilerPassInterface|string $pass Instance atau FQCN dari Compiler Pass.
+     * @return CompilerPassInterface Instance Compiler Pass yang sudah di-resolve.
+     * @throws InvalidArgumentException Jika pass tidak valid.
+     * @throws ContainerException Jika dependensi pass tidak dapat di-resolve saat build-time.
+     */
+    private function resolvePass(CompilerPassInterface|string $pass): CompilerPassInterface
+    {
+        if ($pass instanceof CompilerPassInterface) {
+            return $pass;
+        }
+
+        if (!is_string($pass) || !class_exists($pass)) {
+            throw new InvalidArgumentException("Compiler pass '{$pass}' tidak valid. Harus berupa instance atau FQCN kelas.");
+        }
+
+        try {
+            $reflector = new \ReflectionClass($pass);
+        } catch (\ReflectionException $e) {
+            throw new ContainerException("Kelas compiler pass '{$pass}' tidak ditemukan: " . $e->getMessage(), (int)$e->getCode(), $e);
+        }
+
+        if (!$reflector->implementsInterface(CompilerPassInterface::class)) {
+            throw new InvalidArgumentException("Kelas '{$pass}' harus mengimplementasikan " . CompilerPassInterface::class . ".");
+        }
+
+        if (!$reflector->isInstantiable()) {
+            throw new ContainerException("Compiler pass '{$pass}' tidak dapat diinstansiasi.");
+        }
+
+        $constructor = $reflector->getConstructor();
+        if ($constructor === null) {
+            return new $pass();
+        }
+
+        $dependencies = [];
+        foreach ($constructor->getParameters() as $parameter) {
+            $type = $parameter->getType();
+            if ($type instanceof \ReflectionNamedType && !$type->isBuiltin()) {
+                $typeName = $type->getName();
+                // Hanya bisa me-resolve dari service yang tersedia saat build-time
+                if (isset($this->buildTimeServices[$typeName])) {
+                    $dependencies[] = $this->buildTimeServices[$typeName];
+                } elseif ($parameter->isDefaultValueAvailable()) {
+                    $dependencies[] = $parameter->getDefaultValue();
+                } elseif ($type->allowsNull()) {
+                    $dependencies[] = null;
+                } else {
+                    throw new ContainerException("Dependensi '{$typeName}' untuk pass '{$pass}' tidak tersedia saat build-time dan tidak memiliki nilai default atau nullable.");
+                }
+            } elseif ($parameter->isDefaultValueAvailable()) {
+                $dependencies[] = $parameter->getDefaultValue();
+            } elseif ($parameter->hasType() && $parameter->getType()->allowsNull()) {
+                $dependencies[] = null;
+            } else {
+                throw new ContainerException("Tidak dapat me-resolve parameter '{$parameter->getName()}' untuk pass '{$pass}'.");
+            }
+        }
+        return new $pass(...$dependencies);
+    }
+}
+/* ======== END OF Core/Container/Builder/ContainerBuilder.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Builder/DTOs/ContainerDefinition.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Builder\DTOs;
+
+use Core\Container\Exceptions\ContainerException;
+
+/*
+ * Data Transfer Object (DTO) untuk definisi container.
+ *
+ * Digunakan oleh Compiler Pass untuk membaca dan memodifikasi konfigurasi
+ * container sebelum instance container sebenarnya dibangun.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Builder/DTOs/ContainerDefinition.php
+ */
+final class ContainerDefinition
+{
+    /**
+     * Konstruktor ContainerDefinition.
+     *
+     * @param array<string, array{concrete: mixed, shared: bool}> $bindings
+     * @param array<string, string> $aliases
+     * @param array<string, mixed> $contextual
+     * @param array<string, callable> $factories
+     * @param array<string, array<string>> $tags
+     */
+    public function __construct(
+        private array $bindings,
+        private array $aliases,
+        private array $contextual,
+        private array $factories,
+        private array $tags
+    ) {
+    }
+
+    /**
+     * Menambahkan binding baru ke definisi.
+     *
+     * @param string $id
+     * @param mixed $concrete
+     * @param bool $shared
+     * @param bool $override
+     * @return void
+     * @throws ContainerException
+     */
+    public function addBinding(string $id, mixed $concrete, bool $shared = false, bool $override = false): void
+    {
+        if (isset($this->bindings[$id]) && !$override) {
+            throw new ContainerException("Binding '{$id}' sudah ada di definisi dan tidak diizinkan untuk menimpa.");
+        }
+        $this->bindings[$id] = ['concrete' => $concrete, 'shared' => $shared];
+    }
+
+    /**
+     * Menambahkan alias baru ke definisi.
+     *
+     * @param string $alias
+     * @param string $target
+     * @return void
+     */
+    public function addAlias(string $alias, string $target): void
+    {
+        $this->aliases[$alias] = $target;
+    }
+
+    /**
+     * Menambahkan entri kontekstual baru ke definisi.
+     *
+     * @param string $id
+     * @param string $contextualId
+     * @param mixed $concrete
+     * @return void
+     */
+    public function addContextual(string $id, string $contextualId, mixed $concrete): void
+    {
+        $this->contextual[$id][$contextualId] = $concrete;
+    }
+
+    /**
+     * Menambahkan tag ke service ID dalam definisi.
+     *
+     * @param string $tagName
+     * @param string $serviceId
+     * @return void
+     */
+    public function addTag(string $tagName, string $serviceId): void
+    {
+        if (!isset($this->tags[$tagName])) {
+            $this->tags[$tagName] = [];
+        }
+        if (!in_array($serviceId, $this->tags[$tagName], true)) {
+            $this->tags[$tagName][] = $serviceId;
+        }
+    }
+
+    /**
+     * Memeriksa apakah definisi memiliki binding untuk ID tertentu.
+     *
+     * @param string $id
+     * @return bool
+     */
+    public function hasBinding(string $id): bool
+    {
+        return isset($this->bindings[$id]);
+    }
+    
+    /**
+     * Mendapatkan semua binding dari definisi.
+     *
+     * @return array<string, array{concrete: mixed, shared: bool}>
+     */
+    public function getBindings(): array
+    {
+        return $this->bindings;
+    }
+
+    /**
+     * Mendapatkan semua alias dari definisi.
+     *
+     * @return array<string, string>
+     */
+    public function getAliases(): array
+    {
+        return $this->aliases;
+    }
+
+    /**
+     * Mendapatkan semua entri kontekstual dari definisi.
+     *
+     * @return array<string, mixed>
+     */
+    public function getContextual(): array
+    {
+        return $this->contextual;
+    }
+
+    /**
+     * Mendapatkan semua factory dari definisi.
+     *
+     * @return array<string, callable>
+     */
+    public function getFactories(): array
+    {
+        return $this->factories;
+    }
+
+    /**
+     * Mendapatkan semua tag dari definisi.
+     *
+     * @return array<string, array<string>>
+     */
+    public function getTags(): array
+    {
+        return $this->tags;
+    }
+}
+/* ======== END OF Core/Container/Builder/DTOs/ContainerDefinition.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Adapters/DefaultContainer.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Adapter;
+
+use Core\Container\Contracts\AliasRegistryInterface;
+use Core\Container\Contracts\BindingRegistryInterface;
+use Core\Container\Contracts\ContainerInterface;
+use Core\Container\Contracts\ExtensionInterface;
+use Core\Container\Contracts\ExtensionRegistryInterface;
+use Core\Container\Contracts\InstanceRegistryInterface;
+use Core\Container\Contracts\LifecycleManagerInterface;
+use Core\Container\Contracts\ProviderRegistryInterface;
+use Core\Container\Contracts\ServiceResolverInterface;
+use Core\Container\Event\Contracts\EventDispatcherInterface;
+use Core\Container\Exceptions\ContainerException;
+use Core\Container\Exceptions\NotFoundException;
+use Core\Container\Cli\Adapter\CliRunner;
+
+/*
+ * Implementasi Default dari ContainerInterface.
+ *
+ * Class ini adalah inti dari container, menggabungkan semua komponen
+ * seperti resolver, registries, dan lifecycle manager untuk menyediakan
+ * fungsionalitas DI Container yang lengkap dan tangguh.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Adapters/DefaultContainer.php
+ */
+final class DefaultContainer implements ContainerInterface
+{
+    private bool $booted = false;
+
+    /**
+     * Konstruktor DefaultContainer.
+     *
+     * @param string $environment Lingkungan aplikasi (misalnya 'production', 'development').
+     * @param ServiceResolverInterface $serviceResolver Resolver untuk service.
+     * @param LifecycleManagerInterface $lifecycleManager Manajer siklus hidup (boot/shutdown).
+     * @param CliRunner $cliRunner Runner untuk perintah CLI.
+     * @param EventDispatcherInterface $eventDispatcher Dispatcher untuk event.
+     * @param BindingRegistryInterface $bindingRegistry Registri untuk definisi service.
+     * @param InstanceRegistryInterface $instanceRegistry Registri untuk instance singleton.
+     * @param AliasRegistryInterface $aliasRegistry Registri untuk alias service.
+     * @param ExtensionRegistryInterface $extensionRegistry Registri untuk ekstensi container.
+     * @param ProviderRegistryInterface $providerRegistry Registri untuk provider.
+     */
+    public function __construct(
+        private readonly string $environment,
+        private readonly ServiceResolverInterface $serviceResolver,
+        private readonly LifecycleManagerInterface $lifecycleManager,
+        private readonly CliRunner $cliRunner,
+        private readonly EventDispatcherInterface $eventDispatcher,
+        private readonly BindingRegistryInterface $bindingRegistry,
+        private readonly InstanceRegistryInterface $instanceRegistry,
+        private readonly AliasRegistryInterface $aliasRegistry,
+        private readonly ExtensionRegistryInterface $extensionRegistry,
+        private readonly ProviderRegistryInterface $providerRegistry
+    ) {
+        // Binding internal container services agar bisa di-inject ke service lain.
+        $this->instanceRegistry->set(ContainerInterface::class, $this);
+        $this->instanceRegistry->set(self::class, $this);
+    }
+
+    /**
+     * Menemukan dan mengembalikan entri dari container.
+     *
+     * @param string $id Identifier entri yang akan diambil.
+     * @return mixed Entri yang terkait dengan identifier.
+     * @throws NotFoundException Tidak ada entri yang diidentifikasi oleh $id.
+     * @throws ContainerException Kesalahan lain saat mengambil entri.
+     */
+    public function get(string $id): mixed
+    {
+        return $this->serviceResolver->resolve($id);
+    }
+
+    /**
+     * Mengembalikan true jika container dapat menemukan entri untuk identifier yang diberikan.
+     * Mengembalikan false sebaliknya.
+     *
+     * @param string $id Identifier entri yang akan diperiksa.
+     * @return bool
+     */
+    public function has(string $id): bool
+    {
+        // Resolve alias terlebih dahulu untuk cek keberadaan yang akurat
+        $resolvedId = $this->aliasRegistry->resolve($id);
+        return $this->instanceRegistry->has($resolvedId)
+            || $this->bindingRegistry->has($resolvedId)
+            || class_exists($resolvedId);
+    }
+
+    /**
+     * Mendaftarkan binding service baru.
+     *
+     * @param string $id ID unik untuk service.
+     * @param mixed $concrete Implementasi konkret atau callable factory.
+     * @param bool $shared Apakah instance harus di-share (singleton).
+     * @param bool $override Apakah binding yang sudah ada boleh ditimpa.
+     * @return void
+     */
+    public function bind(string $id, mixed $concrete, bool $shared = false, bool $override = false): void
+    {
+        $this->bindingRegistry->bind($id, $concrete, $shared, $override);
+    }
+
+    /**
+     * Membuat scope baru untuk container.
+     *
+     * @return static
+     */
+    public function createScope(): static
+    {
+        // Perubahan di baris ini, memanggil deepClone()
+        $newResolver = $this->serviceResolver->deepClone();
+        
+        // LifecycleManager bisa di-clone atau dibuat ulang,
+        // namun karena state-nya lebih sederhana (isBooted), clone standar cukup.
+        $newLifecycleManager = clone $this->lifecycleManager;
+
+        $newContainer = new self(
+            $this->environment,
+            $newResolver, // Gunakan resolver baru
+            $newLifecycleManager, // Gunakan lifecycle manager baru
+            $this->cliRunner,
+            $this->eventDispatcher->deepClone(),
+            $this->bindingRegistry->deepClone(),
+            $this->instanceRegistry->deepClone(),
+            $this->aliasRegistry->deepClone(),
+            $this->extensionRegistry->deepClone(),
+            $this->providerRegistry->deepClone()
+        );
+        
+        // Set container pada service yang baru dibuat
+        $newResolver->setContainer($newContainer);
+        // $newLifecycleManager->setContainer($newContainer); // Jika LifecycleManager juga butuh
+
+        return $newContainer;
+    }
+
+    /**
+     * Mendaftarkan callable provider.
+     *
+     * @param callable $provider Callable provider.
+     * @return void
+     */
+    public function registerProvider(callable $provider): void
+    {
+        $this->providerRegistry->register($provider);
+    }
+
+    /**
+     * Mendaftarkan ekstensi ke container.
+     *
+     * @param ExtensionInterface $extension Ekstensi yang akan didaftarkan.
+     * @return void
+     */
+    public function registerExtension(ExtensionInterface $extension): void
+    {
+        $this->extensionRegistry->register($extension, $this);
+    }
+
+    /**
+     * Menjalankan perintah CLI.
+     *
+     * @param string $name Nama perintah.
+     * @param array<string, mixed> $args Argumen perintah.
+     * @return int Kode keluar.
+     */
+    public function runCliCommand(string $name, array $args = []): int
+    {
+        // ArgsParser mengharapkan array seperti $argv,
+        // yang mana elemen pertama adalah nama script, lalu nama command.
+        // Untuk konsistensi, kita sisipkan nama command di depan $args.
+        $argv = array_merge([$name], $args);
+        return $this->cliRunner->run($this, $name, $argv);
+    }
+
+    /**
+     * Mengambil dispatcher event.
+     *
+     * @return EventDispatcherInterface
+     */
+    public function events(): EventDispatcherInterface
+    {
+        return $this->eventDispatcher;
+    }
+
+    /**
+     * Melakukan boot pada container.
+     *
+     * @return void
+     */
+    public function boot(): void
+    {
+        if ($this->booted) {
+            return;
+        }
+        $this->lifecycleManager->boot();
+        $this->booted = true;
+    }
+
+    /**
+     * Melakukan operasi pembersihan sumber daya.
+     *
+     * @return void
+     */
+    public function dispose(): void
+    {
+        if ($this->booted) {
+            $this->lifecycleManager->shutdown();
+            $this->booted = false;
+        }
+        // Registri-registri sudah di-dispose oleh LifecycleManager.
+    }
+
+    /**
+     * Membuat salinan mendalam (deep clone) dari objek.
+     *
+     * @return static
+     */
+    public function deepClone(): static
+    {
+        return $this->createScope();
+    }
+
+    /**
+     * Mengambil registri binding.
+     *
+     * @return BindingRegistryInterface
+     */
+    public function getBindingRegistry(): BindingRegistryInterface
+    {
+        return $this->bindingRegistry;
+    }
+
+    /**
+     * Mengambil registri alias.
+     *
+     * @return AliasRegistryInterface
+     */
+    public function getAliasRegistry(): AliasRegistryInterface
+    {
+        return $this->aliasRegistry;
+    }
+
+    /**
+     * Mengambil registri instance.
+     *
+     * @return InstanceRegistryInterface
+     */
+    public function getInstanceRegistry(): InstanceRegistryInterface
+    {
+        return $this->instanceRegistry;
+    }
+
+    /**
+     * Mengambil registri ekstensi.
+     *
+     * @return ExtensionRegistryInterface
+     */
+    public function getExtensionRegistry(): ExtensionRegistryInterface
+    {
+        return $this->extensionRegistry;
+    }
+}
+/* ======== END OF Core/Container/Adapters/DefaultContainer.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Cli/Contracts/CommandInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Cli\Contracts;
+
+use Core\Container\Contracts\ContainerInterface;
+
+/*
+ * Interface untuk semua perintah CLI.
+ *
+ * Mendefinisikan struktur dasar yang harus diikuti oleh setiap perintah
+ * yang dapat dieksekusi melalui runner CLI container.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Cli/Contracts/CommandInterface.php
+ */
+interface CommandInterface
+{
+    /**
+     * Mengembalikan nama perintah yang akan digunakan untuk memanggilnya dari CLI.
+     *
+     * @return string
+     */
+    public function getName(): string;
+
+    /**
+     * Mengembalikan deskripsi singkat tentang fungsi perintah ini.
+     *
+     * @return string
+     */
+    public function getDescription(): string;
+
+    /**
+     * Menangani eksekusi perintah.
+     *
+     * @param ContainerInterface $container Instance container untuk akses ke service lain.
+     * @param array<int, string> $arguments Argumen posisi yang diberikan ke perintah.
+     * @param array<string, mixed> $options Opsi bernama (misal: --force=true).
+     * @return int Kode keluar (0 untuk sukses, selain 0 untuk error).
+     */
+    public function handle(ContainerInterface $container, array $arguments, array $options): int;
+}
+/* ======== END OF Core/Container/Cli/Contracts/CommandInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Cli/Contracts/TableRendererInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Cli\Contracts;
+
+/*
+ * Interface untuk service yang merender tabel di output CLI.
+ *
+ * Mengabstraksikan logika untuk menampilkan data dalam format tabel
+ * yang rapi dan mudah dibaca.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Cli/Contracts/TableRendererInterface.php
+ */
+interface TableRendererInterface
+{
+    /**
+     * Merender data dalam format tabel.
+     *
+     * @param array<int, string> $headers Header untuk setiap kolom.
+     * @param array<int, array<int, string|int>> $rows Baris data yang akan dirender.
+     * @return void
+     */
+    public function render(array $headers, array $rows): void;
+}
+/* ======== END OF Core/Container/Cli/Contracts/TableRendererInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Cli/Utils/ArgsParser.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Cli\Utils;
+
+use Core\Container\Exceptions\InvalidArgumentException;
+
+/*
+ * Utility untuk parsing argumen Command Line Interface (CLI).
+ *
+ * Class ini menyediakan metode statis untuk mengubah array mentah $argv
+ * menjadi struktur yang lebih terorganisir, memisahkan argumen posisi
+ * dari opsi bernama.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Cli/Utils/ArgsParser.php
+ */
+final class ArgsParser
+{
+    /**
+     * Mengurai argumen baris perintah menjadi argumen posisi dan opsi bernama.
+     *
+     * Contoh: `my-command arg1 arg2 --option1=value --flag` akan menjadi:
+     * [
+     * 'arguments' => ['arg1', 'arg2'],
+     * 'options'   => ['option1' => 'value', 'flag' => true]
+     * ]
+     *
+     * @param array<int, string> $args Array argumen dari `$argv`. Elemen pertama (nama script) akan diabaikan.
+     * @return array{arguments: array<int, string>, options: array<string, mixed>}
+     * @throws InvalidArgumentException jika format opsi tidak valid.
+     */
+    public static function parse(array $args): array
+    {
+        $arguments = [];
+        $options = [];
+
+        // Hapus nama script dari argumen (misalnya, 'bin/console')
+        array_shift($args);
+
+        foreach ($args as $arg) {
+            if (str_starts_with($arg, '--')) {
+                $opt = substr($arg, 2);
+                $parts = explode('=', $opt, 2);
+                $key = $parts[0];
+
+                if (empty($key)) {
+                    throw new InvalidArgumentException("Opsi CLI tidak valid: '{$arg}'");
+                }
+                // Jika tidak ada '=', itu adalah flag boolean true
+                $value = $parts[1] ?? true;
+                $options[$key] = $value;
+            } else {
+                $arguments[] = $arg;
+            }
+        }
+        return ['arguments' => $arguments, 'options' => $options];
+    }
+}
+/* ======== END OF Core/Container/Cli/Utils/ArgsParser.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Cli/Adapters/CliRunner.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Cli\Adapter;
+
+use Core\Container\Cli\Contracts\TableRendererInterface;
+use Core\Container\Cli\Utils\ArgsParser;
+use Core\Container\Contracts\CommandRegistryInterface;
+use Core\Container\Contracts\ContainerInterface;
+use Core\Container\Contracts\ErrorManagerInterface;
+use Core\Container\Contracts\LoggerInterface;
+use Core\Container\Exceptions\InvalidArgumentException;
+use Core\Container\Exceptions\NotFoundException;
+use Throwable;
+
+/*
+ * Runner untuk perintah CLI.
+ *
+ * Class ini mengambil input, menemukan perintah yang sesuai di registri,
+ * dan mengelola eksekusinya, termasuk penanganan error.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Cli/Adapters/CliRunner.php
+ */
+final class CliRunner
+{
+    /**
+     * Konstruktor CliRunner.
+     *
+     * @param CommandRegistryInterface $commandRegistry Registri perintah CLI.
+     * @param LoggerInterface $logger Logger.
+     * @param TableRendererInterface $tableRenderer Renderer tabel.
+     * @param ErrorManagerInterface $errorManager Manajer error.
+     */
+    public function __construct(
+        private readonly CommandRegistryInterface $commandRegistry,
+        private readonly LoggerInterface $logger,
+        private readonly TableRendererInterface $tableRenderer,
+        private readonly ErrorManagerInterface $errorManager
+    ) {
+    }
+
+    /**
+     * Menjalankan perintah CLI.
+     *
+     * @param ContainerInterface $container Container.
+     * @param string $commandName Nama perintah yang akan dijalankan.
+     * @param array<int, string> $argv Argumen baris perintah (dari $argv, termasuk nama script dan nama command).
+     * @return int Kode keluar (0 untuk sukses, selain 0 untuk error).
+     */
+    public function run(ContainerInterface $container, string $commandName, array $argv): int
+    {
+        try {
+            $command = $this->commandRegistry->get($commandName);
+            $parsedArgs = ArgsParser::parse($argv);
+
+            return $command->handle(
+                $container,
+                $parsedArgs['arguments'],
+                $parsedArgs['options']
+            );
+        } catch (NotFoundException $e) {
+            $this->logger->error("Perintah CLI '{$commandName}' tidak ditemukan: " . $e->getMessage());
+            fwrite(STDERR, "Error: Perintah '{$commandName}' tidak ditemukan." . PHP_EOL);
+            $this->renderAvailableCommands();
+            return 1;
+        } catch (InvalidArgumentException $e) {
+            $this->logger->error("Argumen CLI tidak valid: " . $e->getMessage());
+            fwrite(STDERR, "Error: Argumen tidak valid - " . $e->getMessage() . PHP_EOL);
+            return 1;
+        } catch (Throwable $e) {
+            // Tangani semua Throwable lainnya melalui ErrorManager
+            $this->errorManager->handleException($e);
+            fwrite(STDERR, "Terjadi kesalahan tak terduga saat menjalankan perintah '{$commandName}'. Silakan periksa log." . PHP_EOL);
+            return 1;
+        }
+    }
+
+    /**
+     * Merender daftar perintah yang tersedia.
+     */
+    private function renderAvailableCommands(): void
+    {
+        $commands = $this->commandRegistry->all();
+        if (empty($commands)) {
+            return;
+        }
+        
+        $headers = ['Command', 'Description'];
+        $rows = [];
+        foreach ($commands as $name => $command) {
+            $rows[] = [$name, $command->getDescription()];
+        }
+        echo PHP_EOL . "Perintah yang tersedia:" . PHP_EOL;
+        $this->tableRenderer->render($headers, $rows);
+    }
+}
+/* ======== END OF Core/Container/Cli/Adapters/CliRunner.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Cli/Adapters/DefaultTableRenderer.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Cli\Adapters;
+
+use Core\Container\Cli\Contracts\TableRendererInterface;
+
+/*
+ * Implementasi default dari TableRendererInterface.
+ *
+ * Merender data dalam format tabel sederhana ke output standar (console).
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Cli/Adapters/DefaultTableRenderer.php
+ */
+final class DefaultTableRenderer implements TableRendererInterface
+{
+    /**
+     * Merender data dalam format tabel ke output standar.
+     *
+     * @param array<int, string> $headers Header untuk setiap kolom.
+     * @param array<int, array<int, string|int|null>> $rows Baris data yang akan dirender.
+     * @return void
+     */
+    public function render(array $headers, array $rows): void
+    {
+        if (empty($headers) && empty($rows)) {
+            return;
+        }
+
+        $columnWidths = [];
+        // Inisialisasi lebar kolom dari header
+        foreach ($headers as $index => $header) {
+            $columnWidths[$index] = mb_strlen((string) $header);
+        }
+
+        // Perbarui lebar kolom berdasarkan data di baris
+        foreach ($rows as $row) {
+            foreach ($row as $index => $cell) {
+                $columnWidths[$index] = max($columnWidths[$index] ?? 0, mb_strlen((string) $cell));
+            }
+        }
+
+        // Buat format string untuk sprintf
+        $format = '';
+        foreach ($columnWidths as $width) {
+            $format .= sprintf("%%-%ds   ", $width);
+        }
+        $format = rtrim($format) . PHP_EOL;
+
+        // Render header
+        vprintf($format, $headers);
+
+        // Render garis pemisah
+        foreach ($columnWidths as $width) {
+            echo str_repeat('-', $width) . '   ';
+        }
+        echo PHP_EOL;
+
+        // Render baris
+        foreach ($rows as $row) {
+            // Pastikan setiap baris memiliki jumlah elemen yang sama dengan header
+            $paddedRow = array_pad($row, count($headers), '');
+            vprintf($format, $paddedRow);
+        }
+    }
+}
+/* ======== END OF Core/Container/Cli/Adapters/DefaultTableRenderer.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Cli/Adapters/Command/DebugContainerCommand.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Cli\Adapters\Command;
+
+use Core\Container\Cli\Contracts\CommandInterface;
+use Core\Container\Cli\Contracts\TableRendererInterface;
+use Core\Container\Contracts\AliasRegistryInterface;
+use Core\Container\Contracts\BindingRegistryInterface;
+use Core\Container\Contracts\ContainerInterface;
+use Core\Container\Contracts\DecoratorRegistryInterface;
+use Core\Container\Contracts\DisposableRegistryInterface;
+use Core\Container\Contracts\ExtensionRegistryInterface;
+use Core\Container\Contracts\InstanceRegistryInterface;
+use Core\Container\Contracts\ProviderRegistryInterface;
+use Core\Container\Contracts\TagRegistryInterface;
+
+/*
+ * Perintah CLI untuk debugging container.
+ *
+ * Menyediakan insight ke dalam state internal container, seperti bindings,
+l * instances, aliases, dll. untuk tujuan debugging.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Cli/Adapters/Command/DebugContainerCommand.php
+ */
+final class DebugContainerCommand implements CommandInterface
+{
+    public function __construct(
+        private readonly BindingRegistryInterface $bindingRegistry,
+        private readonly InstanceRegistryInterface $instanceRegistry,
+        private readonly AliasRegistryInterface $aliasRegistry,
+        private readonly DecoratorRegistryInterface $decoratorRegistry,
+        private readonly ExtensionRegistryInterface $extensionRegistry,
+        private readonly DisposableRegistryInterface $disposableRegistry,
+        private readonly TagRegistryInterface $tagRegistry,
+        private readonly ProviderRegistryInterface $providerRegistry,
+        private readonly TableRendererInterface $tableRenderer
+    ) {
+    }
+
+    public function getName(): string
+    {
+        return 'debug:container';
+    }
+
+    public function getDescription(): string
+    {
+        return 'Menampilkan informasi debug tentang state internal container.';
+    }
+
+    public function handle(ContainerInterface $container, array $arguments, array $options): int
+    {
+        echo "--- Container Debug Information ---" . PHP_EOL . PHP_EOL;
+
+        $showAll = empty(array_intersect(
+            array_keys($options),
+            ['bindings', 'instances', 'aliases', 'decorators', 'extensions', 'disposables', 'tags', 'providers']
+        ));
+
+        if ($showAll || isset($options['bindings']))   $this->displayBindings();
+        if ($showAll || isset($options['instances']))  $this->displayInstances();
+        if ($showAll || isset($options['aliases']))    $this->displayAliases();
+        if ($showAll || isset($options['decorators'])) $this->displayDecorators();
+        if ($showAll || isset($options['extensions'])) $this->displayExtensions();
+        if ($showAll || isset($options['disposables'])) $this->displayDisposables();
+        if ($showAll || isset($options['tags']))       $this->displayTags();
+        if ($showAll || isset($options['providers']))  $this->displayProviders();
+
+        return 0;
+    }
+
+    private function displayBindings(): void
+    {
+        $bindings = $this->bindingRegistry->all();
+        echo "Bindings (" . count($bindings) . "):" . PHP_EOL;
+        if (empty($bindings)) return;
+
+        $rows = [];
+        foreach ($bindings as $id => $def) {
+            $concreteType = is_string($def['concrete'])
+                ? $def['concrete']
+                : (is_callable($def['concrete']) ? 'Closure/Callable' : get_debug_type($def['concrete']));
+            $rows[] = [$id, $def['shared'] ? 'Yes' : 'No', $concreteType];
+        }
+        $this->tableRenderer->render(['ID', 'Shared', 'Concrete'], $rows);
+        echo PHP_EOL;
+    }
+    
+    private function displayInstances(): void
+    {
+        $instances = $this->instanceRegistry->all();
+        echo "Shared Instances (" . count($instances) . "):" . PHP_EOL;
+        if (empty($instances)) return;
+
+        $rows = [];
+        foreach ($instances as $id => $instance) {
+            $rows[] = [$id, get_debug_type($instance)];
+        }
+        $this->tableRenderer->render(['ID', 'Type'], $rows);
+        echo PHP_EOL;
+    }
+
+    private function displayAliases(): void
+    {
+        $aliases = $this->aliasRegistry->all();
+        echo "Aliases (" . count($aliases) . "):" . PHP_EOL;
+        if (empty($aliases)) return;
+
+        $rows = [];
+        foreach ($aliases as $alias => $target) {
+            $rows[] = [$alias, $target];
+        }
+        $this->tableRenderer->render(['Alias', 'Target ID'], $rows);
+        echo PHP_EOL;
+    }
+    
+    private function displayDecorators(): void
+    {
+        $decorators = $this->decoratorRegistry->all();
+        $count = array_sum(array_map('count', array_map('array_merge', ...array_values($decorators))));
+        echo "Decorators ({$count}):" . PHP_EOL;
+        if (empty($decorators)) return;
+        
+        $rows = [];
+        foreach ($decorators as $id => $priorityGroups) {
+            foreach($priorityGroups as $priority => $decoratorList) {
+                foreach($decoratorList as $decorator) {
+                    $rows[] = [$id, $decorator, $priority];
+                }
+            }
+        }
+        $this->tableRenderer->render(['Decorated ID', 'Decorator FQCN', 'Priority'], $rows);
+        echo PHP_EOL;
+    }
+    
+    private function displayExtensions(): void
+    {
+        $extensions = $this->extensionRegistry->all();
+        echo "Extensions (" . count($extensions) . "):" . PHP_EOL;
+        if (empty($extensions)) return;
+
+        $rows = [];
+        foreach ($extensions as $extension) {
+            $rows[] = [$extension::class];
+        }
+        $this->tableRenderer->render(['Extension Class'], $rows);
+        echo PHP_EOL;
+    }
+
+    private function displayDisposables(): void
+    {
+        $disposables = $this->disposableRegistry->all();
+        echo "Disposables (" . count($disposables) . "):" . PHP_EOL;
+        if (empty($disposables)) return;
+        
+        $rows = [];
+        foreach ($disposables as $disposable) {
+            $rows[] = [$disposable::class];
+        }
+        $this->tableRenderer->render(['Disposable Class'], $rows);
+        echo PHP_EOL;
+    }
+
+    private function displayTags(): void
+    {
+        $tags = $this->tagRegistry->all();
+        echo "Tags (" . count($tags) . "):" . PHP_EOL;
+        if (empty($tags)) return;
+        
+        $rows = [];
+        foreach ($tags as $tagName => $serviceIds) {
+            $rows[] = [$tagName, implode(', ', $serviceIds)];
+        }
+        $this->tableRenderer->render(['Tag Name', 'Service IDs'], $rows);
+        echo PHP_EOL;
+    }
+
+    private function displayProviders(): void
+    {
+        $providers = $this->providerRegistry->all();
+        echo "Providers (" . count($providers) . "):" . PHP_EOL;
+        if (empty($providers)) return;
+        
+        $rows = [];
+        foreach ($providers as $provider) {
+            $info = 'Unknown Callable';
+            if ($provider instanceof \Closure) {
+                $info = 'Closure';
+            } elseif (is_string($provider)) {
+                $info = $provider;
+            } elseif (is_array($provider)) {
+                $class = is_object($provider[0]) ? $provider[0]::class : $provider[0];
+                $info = $class . '::' . $provider[1];
+            }
+            $rows[] = [$info];
+        }
+        $this->tableRenderer->render(['Provider Callable'], $rows);
+        echo PHP_EOL;
+    }
+}
+/* ======== END OF Core/Container/Cli/Adapters/Command/DebugContainerCommand.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Cli/Adapters/Command/HelpCommand.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Cli\Adapters\Command;
+
+use Core\Container\Cli\Contracts\CommandInterface;
+use Core\Container\Cli\Contracts\TableRendererInterface;
+use Core\Container\Contracts\CommandRegistryInterface;
+use Core\Container\Contracts\ContainerInterface;
+use Core\Container\Exceptions\NotFoundException;
+
+/*
+ * Perintah CLI untuk menampilkan bantuan.
+ *
+ * Menampilkan daftar semua perintah yang tersedia atau detail untuk
+ * perintah spesifik.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Cli/Adapters/Command/HelpCommand.php
+ */
+final class HelpCommand implements CommandInterface
+{
+    public function __construct(
+        private readonly CommandRegistryInterface $commandRegistry,
+        private readonly TableRendererInterface $tableRenderer
+    ) {
+    }
+
+    public function getName(): string
+    {
+        return 'help';
+    }
+
+    public function getDescription(): string
+    {
+        return 'Menampilkan daftar perintah atau bantuan untuk perintah tertentu.';
+    }
+
+    public function handle(ContainerInterface $container, array $arguments, array $options): int
+    {
+        if (isset($arguments[0])) {
+            return $this->displayCommandHelp($arguments[0]);
+        }
+
+        return $this->displayCommandList();
+    }
+
+    private function displayCommandList(): int
+    {
+        echo "Penggunaan:" . PHP_EOL;
+        echo "  command [arguments] [options]" . PHP_EOL . PHP_EOL;
+        echo "Perintah yang tersedia:" . PHP_EOL;
+
+        $commands = $this->commandRegistry->all();
+        $rows = [];
+        foreach ($commands as $name => $command) {
+            $rows[] = [$name, $command->getDescription()];
+        }
+        $this->tableRenderer->render(['Command', 'Description'], $rows);
+        
+        return 0;
+    }
+    
+    private function displayCommandHelp(string $commandName): int
+    {
+        try {
+            $command = $this->commandRegistry->get($commandName);
+            echo "Bantuan untuk perintah: " . $command->getName() . PHP_EOL;
+            echo "Deskripsi: " . $command->getDescription() . PHP_EOL;
+            // TODO: Tambahkan detail penggunaan (argumen, opsi) jika ada metadata lebih lanjut
+        } catch (NotFoundException) {
+            echo "Perintah '{$commandName}' tidak ditemukan." . PHP_EOL;
+            return 1;
+        }
+        return 0;
+    }
+}   
+/* ======== END OF Core/Container/Cli/Adapters/Command/HelpCommand.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Internal/ServiceResolver.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Internal;
+
+use Core\Container\Contracts\AliasRegistryInterface;
+use Core\Container\Contracts\BindingRegistryInterface;
+use Core\Container\Contracts\ContainerAwareInterface;
+use Core\Container\Contracts\ContainerInterface;
+use Core\Container\Contracts\DecoratorRegistryInterface;
+use Core\Container\Contracts\DisposableInterface;
+use Core\Container\Contracts\DisposableRegistryInterface;
+use Core\Container\Contracts\ErrorManagerInterface;
+use Core\Container\Contracts\InstanceRegistryInterface;
+use Core\Container\Contracts\ReflectionCacheInterface;
+use Core\Container\Contracts\ServiceResolverInterface;
+use Core\Container\Event\Contracts\EventDispatcherInterface;
+use Core\Container\Event\Events\Kernel\AfterResolveEvent;
+use Core\Container\Event\Events\Kernel\BeforeResolveEvent;
+use Core\Container\Exceptions\CircularDependencyException;
+use Core\Container\Exceptions\ContainerException;
+use Core\Container\Exceptions\NotFoundException;
+use Core\Container\Utils\ContainerUtils;
+use ReflectionNamedType;
+use Throwable;
+
+/*
+ * Implementasi ServiceResolverInterface.
+ *
+ * Ini adalah komponen inti yang bertanggung jawab untuk mengubah ID service
+ * menjadi instance objek yang sebenarnya. Ini menangani autowiring,
+ * factory, singleton, dan decorator.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Internal/ServiceResolver.php
+ */
+final class ServiceResolver implements ServiceResolverInterface, ContainerAwareInterface
+{
+    private ?ContainerInterface $container = null;
+    
+    /** @var array<string, bool> - Untuk deteksi circular dependency saat runtime */
+    private array $resolving = [];
+
+    /**
+     * Konstruktor ServiceResolver.
+     */
+    public function __construct(
+        private readonly BindingRegistryInterface $bindingRegistry,
+        private readonly InstanceRegistryInterface $instanceRegistry,
+        private readonly AliasRegistryInterface $aliasRegistry,
+        private readonly DecoratorRegistryInterface $decoratorRegistry,
+        private readonly DisposableRegistryInterface $disposableRegistry,
+        private readonly ReflectionCacheInterface $reflectionCache,
+        private readonly EventDispatcherInterface $eventDispatcher,
+        private readonly ErrorManagerInterface $errorManager
+    ) {
+    }
+
+    /**
+     * Mengatur instance container. Diperlukan untuk circular reference dan dependency injection ke callable.
+     *
+     * @param ContainerInterface $container Instance container.
+     */
+    public function setContainer(ContainerInterface $container): void
+    {
+        $this->container = $container;
+    }
+
+    /**
+     * Me-resolve service berdasarkan ID.
+     *
+     * @param string $id ID service.
+     * @return mixed Instance service.
+     * @throws NotFoundException Jika service tidak dapat di-resolve.
+     * @throws ContainerException Jika terjadi kesalahan lain selama resolusi.
+     * @throws CircularDependencyException Jika terdeteksi dependensi sirkular.
+     */
+    public function resolve(string $id): mixed
+    {
+        if ($this->container === null) {
+            throw new ContainerException("Container belum diatur pada ServiceResolver.");
+        }
+
+        $resolvedId = $this->aliasRegistry->resolve($id);
+
+        // 1. Cek instance yang sudah di-share (singleton)
+        if ($this->instanceRegistry->has($resolvedId)) {
+            return $this->instanceRegistry->get($resolvedId);
+        }
+
+        // Deteksi ketergantungan sirkular
+        if (isset($this->resolving[$resolvedId])) {
+            // INI PERUBAHANNYA: Pesan error sekarang lebih detail
+            $resolutionStack = implode(' -> ', array_keys($this->resolving));
+            throw new \Core\Container\Exceptions\CircularDependencyException(
+                "Ketergantungan sirkular terdeteksi: {$resolutionStack} -> {$resolvedId}"
+            );
+        }
+
+        $this->resolving[$resolvedId] = true;
+
+        try {
+            $this->eventDispatcher->dispatch(new BeforeResolveEvent($resolvedId, $this->container));
+            
+            // 2. Cek binding
+            if ($this->bindingRegistry->has($resolvedId)) {
+                $binding = $this->bindingRegistry->get($resolvedId);
+                $instance = $this->build($resolvedId, $binding['concrete']);
+            }
+            // 3. Coba autowire sebagai kelas biasa jika tidak ada binding
+            elseif (class_exists($resolvedId)) {
+                $instance = ContainerUtils::buildClass($resolvedId, $this); // Rekursif autowire
+            } else {
+                 throw new NotFoundException("Service '{$resolvedId}' (dimulai dari '{$id}') tidak dapat ditemukan atau di-autowire.");
+            }
+
+            // 4. Terapkan decorator
+            $instance = $this->applyDecorators($resolvedId, $instance);
+
+            // 5. Daftarkan sebagai disposable jika diperlukan
+            if ($instance instanceof DisposableInterface) {
+                $this->disposableRegistry->register($instance);
+            }
+
+            // 6. Simpan jika shared (hanya jika berasal dari binding)
+            if (isset($binding) && $binding['shared']) {
+                $this->instanceRegistry->set($resolvedId, $instance);
+            }
+
+            $this->eventDispatcher->dispatch(new AfterResolveEvent($resolvedId, $instance, $this->container));
+            return $instance;
+
+        } catch (Throwable $e) {
+            // Jika error bukan dari container, bungkus untuk kejelasan.
+            if (!($e instanceof ContainerException)) {
+                 throw new ContainerException("Gagal me-resolve '{$id}': " . $e->getMessage(), (int)$e->getCode(), $e);
+            }
+            throw $e; // Re-throw the original container exception
+        } finally {
+            unset($this->resolving[$resolvedId]);
+        }
+    }
+
+    /**
+     * Membangun instance dari concrete definition.
+     *
+     * Metode ini dapat menangani:
+     * 1. Callable/Factory: Menjalankan fungsi untuk membuat instance.
+     * 2. Nama Class (String): Melakukan auto-wiring pada class tersebut.
+     * 3. Nilai Primitif (String, Int, Array, dll.): Mengembalikan nilai apa adanya.
+     *
+     * @param string $id ID service.
+     * @param mixed $concrete Definisi konkret (callable, FQCN, atau nilai primitif).
+     * @return mixed Instance service atau nilai yang di-resolve.
+     * @throws \Core\Container\Exceptions\ContainerException Jika container tidak tersedia untuk factory.
+     */
+    private function build(string $id, mixed $concrete): mixed
+    {
+        // 1. Jika definisi adalah callable (factory/closure), jalankan.
+        if (is_callable($concrete)) {
+            if ($this->container === null) {
+                throw new ContainerException(
+                    "Container harus di-set untuk me-resolve factory callable untuk service '{$id}'."
+                );
+            }
+            return call_user_func($concrete, $this->container);
+        }
+
+        // 2. Jika definisi adalah string, periksa apakah itu nama class.
+        if (is_string($concrete)) {
+            // Jika string adalah nama class yang ada, bangun (autowire) class tersebut.
+            if (class_exists($concrete)) {
+                return ContainerUtils::buildClass($concrete, $this);
+            }
+            
+            // Jika string BUKAN nama class, maka itu adalah nilai literal (misal: API key).
+            // Kembalikan string itu sendiri. Ini adalah perbaikan utamanya.
+            return $concrete;
+        }
+
+        // 3. Jika bukan callable dan bukan string (misal: int, array, bool, object),
+        // kembalikan nilai itu apa adanya.
+        return $concrete;
+    }
+
+    /**
+     * Menerapkan decorator ke instance service.
+     *
+     * @param string $id ID service.
+     * @param mixed $instance Instance service yang akan didekorasi.
+     * @return mixed Instance yang sudah didekorasi.
+     * @throws ContainerException Jika decorator tidak valid atau dependensinya tidak bisa di-resolve.
+     */
+    private function applyDecorators(string $id, mixed $instance): mixed
+    {
+        $decorators = $this->decoratorRegistry->getDecorators($id);
+        if (empty($decorators)) {
+            return $instance;
+        }
+
+        $decoratedInstance = $instance;
+        foreach ($decorators as $decoratorFqcn) {
+            if ($this->container === null) {
+                throw new ContainerException("Container harus di-set untuk me-resolve decorator.");
+            }
+            
+            // Gunakan ContainerUtils untuk membangun decorator,
+            // dengan menyediakan instance yang sedang didekorasi sebagai dependensi tambahan.
+            // Kita gunakan get_class untuk tipe konkret sebagai kunci.
+            $extraDependencies = [get_class($decoratedInstance) => $decoratedInstance];
+
+            // Kita juga bisa mencoba interface yang diimplementasikan
+            foreach(class_implements($decoratedInstance) as $interface) {
+                $extraDependencies[$interface] = $decoratedInstance;
+            }
+
+            $decoratedInstance = ContainerUtils::buildClass(
+                $decoratorFqcn,
+                $this->container, // Decorator bisa punya dependensi lain dari container
+                $extraDependencies
+            );
+        }
+        return $decoratedInstance;
+    }
+
+    /**
+     * Membuat salinan baru dari ServiceResolver dengan state yang bersih.
+     *
+     * @return static
+     */
+    public function deepClone(): static
+    {
+        // Membuat instance baru dengan dependensi yang sama,
+        // Ini secara efektif mereset state internal seperti $resolving.
+        $clone = new self(
+            $this->bindingRegistry,
+            $this->instanceRegistry,
+            $this->aliasRegistry,
+            $this->decoratorRegistry,
+            $this->disposableRegistry,
+            $this->reflectionCache,
+            $this->eventDispatcher,
+            $this->errorManager
+        );
+
+        if ($this->container) {
+            $clone->setContainer($this->container);
+        }
+
+        return $clone;
+    }
+}
+/* ======== END OF Core/Container/Internal/ServiceResolver.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Internal/LifecycleManager.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Internal;
+
+use Core\Container\Contracts\ContainerAwareInterface;
+use Core\Container\Contracts\ContainerInterface;
+use Core\Container\Contracts\DisposableRegistryInterface;
+use Core\Container\Contracts\ErrorManagerInterface;
+use Core\Container\Contracts\ExtensionRegistryInterface;
+use Core\Container\Contracts\LifecycleManagerInterface;
+use Core\Container\Event\Contracts\EventDispatcherInterface;
+use Core\Container\Event\Events\Kernel\ContainerBootedEvent;
+use Core\Container\Exceptions\ContainerException;
+use Throwable;
+
+/*
+ * Implementasi LifecycleManagerInterface.
+ *
+ * Bertanggung jawab untuk mengelola siklus hidup utama container,
+ * yaitu proses boot (inisialisasi) dan shutdown (pembersihan).
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Internal/LifecycleManager.php
+ */
+final class LifecycleManager implements LifecycleManagerInterface, ContainerAwareInterface
+{
+    private ?ContainerInterface $container = null;
+    private bool $isBooted = false;
+
+    /**
+     * Konstruktor LifecycleManager.
+     */
+    public function __construct(
+        private readonly ExtensionRegistryInterface $extensionRegistry,
+        private readonly EventDispatcherInterface $eventDispatcher,
+        private readonly DisposableRegistryInterface $disposableRegistry,
+        private readonly ErrorManagerInterface $errorManager
+    ) {
+    }
+
+    /**
+     * Mengatur instance container.
+     *
+     * @param ContainerInterface $container Instance container.
+     */
+    public function setContainer(ContainerInterface $container): void
+    {
+        $this->container = $container;
+    }
+
+    /**
+     * Memulai siklus hidup kernel (boot).
+     *
+     * @throws ContainerException Jika container belum diatur.
+     */
+    public function boot(): void
+    {
+        if ($this->isBooted) {
+            return;
+        }
+
+        if ($this->container === null) {
+            throw new ContainerException("Container belum diatur pada LifecycleManager.");
+        }
+
+        try {
+            // Boot semua ekstensi
+            $this->extensionRegistry->bootAll($this->container);
+            // Dispatch event ContainerBootedEvent
+            $this->eventDispatcher->dispatch(new ContainerBootedEvent($this->container));
+
+            $this->isBooted = true;
+        } catch (Throwable $e) {
+            $this->errorManager->handleException($e);
+            throw $e; // Re-throw the exception after handling
+        }
+    }
+
+    /**
+     * Menghentikan siklus hidup kernel (shutdown).
+     *
+     * @throws ContainerException Jika container belum diatur.
+     */
+    public function shutdown(): void
+    {
+        if (!$this->isBooted) {
+            return;
+        }
+
+        if ($this->container === null) {
+            throw new ContainerException("Container belum diatur pada LifecycleManager.");
+        }
+
+        try {
+            // Shutdown semua ekstensi
+            $this->extensionRegistry->shutdownAll($this->container);
+            // Dispose semua disposable yang terdaftar
+            $this->disposableRegistry->dispose();
+            // Dispose event dispatcher dan resolvernya
+            $this->eventDispatcher->dispose();
+
+            $this->isBooted = false;
+        } catch (Throwable $e) {
+            $this->errorManager->handleException($e);
+            throw $e; // Re-throw the exception after handling
+        }
+    }
+}
+/* ======== END OF Core/Container/Internal/LifecycleManager.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Compiler/Contracts/ClassInspectorInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Compiler\Contracts;
+
+/*
+ * Interface untuk inspektor kelas.
+ *
+ * Menyediakan kemampuan untuk menganalisis metadata dari sebuah kelas,
+ * seperti implementasi interface dan dependensi constructor, yang berguna
+ * selama fase kompilasi container.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Compiler/Contracts/ClassInspectorInterface.php
+ */
+interface ClassInspectorInterface
+{
+    /**
+     * Memeriksa apakah kelas mengimplementasikan interface tertentu.
+     *
+     * @param string $class FQCN kelas yang akan diperiksa.
+     * @param string $interface FQCN interface yang dicari.
+     * @return bool True jika kelas mengimplementasikan interface, false jika tidak atau kelas tidak ada.
+     */
+    public function implements(string $class, string $interface): bool;
+
+    /**
+     * Memeriksa apakah kelas adalah turunan dari kelas lain.
+     *
+     * @param string $class FQCN kelas yang akan diperiksa.
+     * @param string $parent FQCN kelas induk yang dicari.
+     * @return bool True jika kelas adalah turunan, false jika tidak atau kelas tidak ada.
+     */
+    public function inherits(string $class, string $parent): bool;
+
+    /**
+     * Mendapatkan parameter konstruktor dari sebuah kelas.
+     *
+     * @param string $class FQCN kelas.
+     * @return \ReflectionParameter[] Array dari objek ReflectionParameter.
+     */
+    public function getConstructorParameters(string $class): array;
+}
+/* ======== END OF Core/Container/Compiler/Contracts/ClassInspectorInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Compiler/Contracts/CompilerPassInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Compiler\Contracts;
+
+use Core\Container\Builder\DTOs\ContainerDefinition;
+
+/*
+ * Interface untuk compiler pass.
+ *
+ * Compiler pass adalah sebuah langkah dalam proses build container
+ * yang memungkinkan modifikasi definisi service secara dinamis
+ * sebelum container dikompilasi.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Compiler/Contracts/CompilerPassInterface.php
+ */
+interface CompilerPassInterface
+{
+    /**
+     * Memproses definisi container.
+     *
+     * Metode ini dipanggil selama proses kompilasi container, memungkinkan
+     * pass untuk memeriksa, mengubah, atau menambahkan definisi service.
+     *
+     * @param ContainerDefinition $definition Definisi container yang dapat dimodifikasi.
+     * @return void
+     */
+    public function process(ContainerDefinition $definition): void;
+}
+/* ======== END OF Core/Container/Compiler/Contracts/CompilerPassInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Compiler/Adapters/ReflectionClassInspector.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Compiler\Adapters;
+
+use Core\Container\Compiler\Contracts\ClassInspectorInterface;
+use Core\Container\Exceptions\ContainerException;
+use ReflectionClass;
+use ReflectionException;
+
+/*
+ * Implementasi ClassInspectorInterface berbasis Reflection API.
+ *
+ * Menggunakan Reflection API internal PHP untuk menyediakan fungsionalitas
+ * inspeksi kelas.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Compiler/Adapters/ReflectionClassInspector.php
+ */
+final class ReflectionClassInspector implements ClassInspectorInterface
+{
+    /** @var array<string, ReflectionClass> */
+    private array $reflectionCache = [];
+
+    /**
+     * Mengambil ReflectionClass dari cache atau membuat yang baru.
+     *
+     * @param string $class FQCN kelas.
+     * @return ReflectionClass
+     * @throws ContainerException Jika kelas tidak ditemukan.
+     */
+    private function getReflectionClass(string $class): ReflectionClass
+    {
+        if (!isset($this->reflectionCache[$class])) {
+            try {
+                $this->reflectionCache[$class] = new ReflectionClass($class);
+            } catch (ReflectionException $e) {
+                throw new ContainerException("Kelas '{$class}' tidak ditemukan atau tidak dapat direfleksikan: " . $e->getMessage(), 0, $e);
+            }
+        }
+        return $this->reflectionCache[$class];
+    }
+
+    /**
+     * Memeriksa apakah kelas mengimplementasikan interface tertentu.
+     *
+     * @param string $class FQCN kelas yang akan diperiksa.
+     * @param string $interface FQCN interface yang dicari.
+     * @return bool True jika kelas mengimplementasikan interface, false jika tidak atau kelas tidak ada.
+     */
+    public function implements(string $class, string $interface): bool
+    {
+        try {
+            $reflector = $this->getReflectionClass($class);
+            return $reflector->implementsInterface($interface);
+        } catch (ContainerException) {
+            // Kelas tidak ditemukan atau tidak dapat direfleksi, kembalikan false.
+            return false;
+        }
+    }
+
+    /**
+     * Memeriksa apakah kelas adalah turunan dari kelas lain.
+     *
+     * @param string $class FQCN kelas yang akan diperiksa.
+     * @param string $parent FQCN kelas induk yang dicari.
+     * @return bool True jika kelas adalah turunan, false jika tidak atau kelas tidak ada.
+     */
+    public function inherits(string $class, string $parent): bool
+    {
+        try {
+            $reflector = $this->getReflectionClass($class);
+            return $reflector->isSubclassOf($parent);
+        } catch (ContainerException) {
+            // Kelas tidak ditemukan atau tidak dapat direfleksi, kembalikan false.
+            return false;
+        }
+    }
+
+    /**
+     * Mendapatkan parameter konstruktor dari sebuah kelas.
+     *
+     * @param string $class FQCN kelas.
+     * @return \ReflectionParameter[] Array dari objek ReflectionParameter.
+     */
+    public function getConstructorParameters(string $class): array
+    {
+        try {
+            $reflector = $this->getReflectionClass($class);
+            $constructor = $reflector->getConstructor();
+            return $constructor ? $constructor->getParameters() : [];
+        } catch (ContainerException) {
+            // Jika kelas tidak ada atau tidak dapat direfleksi, ia tidak memiliki parameter konstruktor.
+            return [];
+        }
+    }
+}
+/* ======== END OF Core/Container/Compiler/Adapters/ReflectionClassInspector.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Utils/ContainerUtils.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Utils;
+
+use Core\Container\Contracts\ServiceResolverInterface;
+use Core\Container\Exceptions\CircularDependencyException;
+use Core\Container\Exceptions\ContainerException;
+use Core\Container\Exceptions\NotFoundException;
+use ReflectionClass;
+use ReflectionException;
+use ReflectionNamedType;
+use ReflectionParameter;
+
+/*
+ * Utilitas untuk operasi terkait container.
+ *
+ * Menyediakan fungsionalitas pembantu (helper) statis, terutama
+ * untuk proses auto-wiring (membangun kelas dan dependensinya secara otomatis).
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Utils/ContainerUtils.php
+ */
+final class ContainerUtils
+{
+    /**
+     * Membangun instance kelas dengan me-resolve dependensi konstruktornya secara otomatis.
+     *
+     * @template T of object
+     * @param class-string<T> $className FQCN kelas yang akan dibangun.
+     * @param ServiceResolverInterface|ContainerInterface $resolver Resolver service atau container itu sendiri.
+     * @param array<string, mixed> $extraDependencies Dependensi tambahan yang bisa di-inject berdasarkan nama parameter.
+     * @param array<string> $building Stack dependensi yang sedang dibangun untuk deteksi sirkular.
+     * @return T Instance kelas yang dibangun.
+     * @throws CircularDependencyException Jika terdeteksi ketergantungan sirkular.
+     * @throws NotFoundException Jika dependensi tidak dapat di-resolve.
+     * @throws ContainerException Kesalahan lain selama proses pembangunan.
+     */
+    public static function buildClass(
+        string $className,
+        ServiceResolverInterface|ContainerInterface $resolver,
+        array $extraDependencies = [],
+        array &$building = []
+    ): object {
+        if (isset($building[$className])) {
+            throw new CircularDependencyException("Ketergantungan sirkular terdeteksi saat membangun '{$className}'. Stack: " . implode(' -> ', array_keys(array_merge($building, [$className => true]))));
+        }
+
+        $building[$className] = true;
+
+        try {
+            $reflector = new ReflectionClass($className);
+        } catch (ReflectionException $e) {
+            unset($building[$className]);
+            throw new NotFoundException("Kelas '{$className}' tidak ditemukan atau tidak dapat dimuat.", 0, $e);
+        }
+
+        if (!$reflector->isInstantiable()) {
+            unset($building[$className]);
+            throw new ContainerException("Kelas '{$className}' tidak dapat diinstansiasi.");
+        }
+
+        $constructor = $reflector->getConstructor();
+        if ($constructor === null) {
+            unset($building[$className]);
+            return new $className();
+        }
+
+        $dependencies = [];
+        foreach ($constructor->getParameters() as $parameter) {
+            $dependencies[] = self::resolveParameter($parameter, $resolver, $extraDependencies, $building);
+        }
+
+        unset($building[$className]);
+        return $reflector->newInstanceArgs($dependencies);
+    }
+
+    /**
+     * Me-resolve satu parameter konstruktor.
+     *
+     * @param ReflectionParameter $parameter Parameter yang akan di-resolve.
+     * @param ServiceResolverInterface|ContainerInterface $resolver Resolver service atau container.
+     * @param array<string, mixed> $extraDependencies Dependensi tambahan.
+     * @param array<string> $building Stack dependensi yang sedang dibangun.
+     * @return mixed Nilai parameter yang di-resolve.
+     * @throws NotFoundException Jika dependensi tidak dapat di-resolve.
+     * @throws ContainerException Kesalahan lain.
+     */
+    private static function resolveParameter(
+        ReflectionParameter $parameter,
+        ServiceResolverInterface|ContainerInterface $resolver,
+        array $extraDependencies,
+        array &$building
+    ): mixed {
+        $parameterName = $parameter->getName();
+        $type = $parameter->getType();
+
+        // 1. Coba resolve dari extra dependencies terlebih dahulu berdasarkan nama parameter.
+        if (array_key_exists($parameterName, $extraDependencies)) {
+            return $extraDependencies[$parameterName];
+        }
+
+        // 2. Jika ada tipe dan bukan built-in, coba resolve dari container.
+        if ($type instanceof ReflectionNamedType && !$type->isBuiltin()) {
+            $typeName = $type->getName();
+
+            // 2a. Cek juga di extra dependencies berdasarkan tipe.
+            if (array_key_exists($typeName, $extraDependencies)) {
+                return $extraDependencies[$typeName];
+            }
+
+            try {
+                // Gunakan metode 'get' jika resolver adalah Container, atau 'resolve' jika ServiceResolver
+                return $resolver instanceof \Psr\Container\ContainerInterface
+                    ? $resolver->get($typeName)
+                    : $resolver->resolve($typeName);
+            } catch (NotFoundException $e) {
+                // Jika tidak ditemukan, periksa opsi fallback.
+                if ($parameter->isDefaultValueAvailable()) {
+                    return $parameter->getDefaultValue();
+                }
+                if ($type->allowsNull()) {
+                    return null;
+                }
+                // Jika tidak ada fallback, lempar exception yang lebih deskriptif.
+                $declaringClass = $parameter->getDeclaringClass()?->getName() ?? 'unknown class';
+                throw new NotFoundException("Tidak dapat me-resolve dependensi '{$typeName}' untuk parameter \${$parameterName} di {$declaringClass}.", 0, $e);
+            }
+        }
+
+        // 3. Jika tidak ada tipe atau tipe built-in, cek nilai default.
+        if ($parameter->isDefaultValueAvailable()) {
+            return $parameter->getDefaultValue();
+        }
+
+        // 4. Cek apakah parameter nullable.
+        if ($type instanceof ReflectionNamedType && $type->allowsNull()) {
+            return null;
+        }
+        
+        // 5. Jika semua gagal, lempar exception.
+        $declaringClass = $parameter->getDeclaringClass()?->getName() ?? 'unknown class';
+        throw new ContainerException("Tidak dapat me-resolve parameter primitif atau tanpa tipe '\${$parameterName}' di {$declaringClass}.");
+    }
+}
+/* ======== END OF Core/Container/Utils/ContainerUtils.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Event/Contracts/EventDispatcherInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Event\Contracts;
+
+use Core\Container\Contracts\DisposableInterface;
+
+/*
+ * Interface untuk dispatcher event.
+ *
+ * Bertanggung jawab untuk memicu event dan memanggil semua listener
+ * yang terdaftar untuk event tersebut.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Event/Contracts/EventDispatcherInterface.php
+ */
+interface EventDispatcherInterface extends DisposableInterface
+{
+    /**
+     * Menambahkan pendengar untuk event tertentu.
+     *
+     * @param string $eventName Nama event.
+     * @param callable|array<int, string>|string $listener Callable, array [class, method], atau FQCN kelas listener.
+     * @param int $priority Prioritas listener (lebih tinggi dieksekusi lebih dulu).
+     * @return void
+     */
+    public function addListener(string $eventName, callable|array|string $listener, int $priority = 0): void;
+
+    /**
+     * Memicu event dan memanggil semua listener terkait.
+     *
+     * @param EventInterface $event Objek event yang akan dikirim.
+     * @param string|null $eventName Nama event (opsional, akan diambil dari FQCN event jika null).
+     * @return EventInterface Event yang sudah diproses oleh para listener.
+     */
+    public function dispatch(EventInterface $event, ?string $eventName = null): EventInterface;
+}
+/* ======== END OF Core/Container/Event/Contracts/EventDispatcherInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Event/Contracts/EventInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Event\Contracts;
+
+/*
+ * Interface dasar untuk objek event.
+ *
+ * Berfungsi sebagai penanda (marker interface) untuk semua class
+ * yang merepresentasikan sebuah event dalam sistem.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Event/Contracts/EventInterface.php
+ */
+interface EventInterface
+{
+}
+/* ======== END OF Core/Container/Event/Contracts/EventInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Event/Contracts/ListenerInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Event\Contracts;
+
+/*
+ * Interface dasar untuk pendengar event.
+ *
+ * Berfungsi sebagai penanda (marker interface) untuk class-class
+ * yang bertindak sebagai listener event.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Event/Contracts/ListenerInterface.php
+ */
+interface ListenerInterface
+{
+}
+/* ======== END OF Core/Container/Event/Contracts/ListenerInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Event/Contracts/ListenerResolverInterface.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Event\Contracts;
+
+use Core\Container\Contracts\DisposableInterface;
+use Core\Container\Exceptions\InvalidArgumentException;
+
+/*
+ * Interface untuk resolver pendengar event.
+ *
+ * Bertanggung jawab untuk mengubah berbagai format definisi listener
+ * (string, array, callable) menjadi sebuah `callable` yang siap dieksekusi.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Event/Contracts/ListenerResolverInterface.php
+ */
+interface ListenerResolverInterface extends DisposableInterface
+{
+    /**
+     * Mengurai dan mengembalikan callable dari definisi pendengar.
+     *
+     * @param mixed $listener Definisi pendengar (callable, array [class, method], atau FQCN kelas).
+     * @return callable
+     * @throws InvalidArgumentException Jika definisi listener tidak valid.
+     */
+    public function resolve(mixed $listener): callable;
+}
+/* ======== END OF Core/Container/Event/Contracts/ListenerResolverInterface.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Event/Events/Kernel/AfterResolveEvent.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Event\Events\Kernel;
+
+use Core\Container\Contracts\ContainerInterface;
+use Core\Container\Event\Contracts\EventInterface;
+
+/*
+ * Event yang dipicu setelah sebuah service berhasil di-resolve dari container.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Event/Events/Kernel/AfterResolveEvent.php
+ */
+final readonly class AfterResolveEvent implements EventInterface
+{
+    /**
+     * @param string $id ID service yang di-resolve.
+     * @param mixed $instance Instance service yang di-resolve.
+     * @param ContainerInterface $container Container yang melakukan resolve.
+     */
+    public function __construct(
+        public string $id,
+        public mixed $instance,
+        public ContainerInterface $container
+    ) {
+    }
+}
+/* ======== END OF Core/Container/Event/Events/Kernel/AfterResolveEvent.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Event/Events/Kernel/BeforeResolveEvent.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Event\Events\Kernel;
+
+use Core\Container\Contracts\ContainerInterface;
+use Core\Container\Event\Contracts\EventInterface;
+
+/*
+ * Event yang dipicu sebelum sebuah service akan di-resolve dari container.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Event/Events/Kernel/BeforeResolveEvent.php
+ */
+final readonly class BeforeResolveEvent implements EventInterface
+{
+    /**
+     * @param string $id ID service yang akan di-resolve.
+     * @param ContainerInterface $container Container yang akan melakukan resolve.
+     */
+    public function __construct(
+        public string $id,
+        public ContainerInterface $container
+    ) {
+    }
+}
+/* ======== END OF Core/Container/Event/Events/Kernel/BeforeResolveEvent.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Event/Events/Kernel/ContainerBootedEvent.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Event\Events\Kernel;
+
+use Core\Container\Contracts\ContainerInterface;
+use Core\Container\Event\Contracts\EventInterface;
+
+/*
+ * Event yang dipicu setelah container berhasil di-boot sepenuhnya.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Event/Events/Kernel/ContainerBootedEvent.php
+ */
+final readonly class ContainerBootedEvent implements EventInterface
+{
+    /**
+     * @param ContainerInterface $container Instance container yang telah di-boot.
+     */
+    public function __construct(
+        public ContainerInterface $container
+    ) {
+    }
+}
+/* ======== END OF Core/Container/Event/Events/Kernel/ContainerBootedEvent.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Event/Adapters/DefaultEventDispatcher.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Event\Adapters;
+
+use Core\Container\Contracts\ProfilerInterface;
+use Core\Container\Event\Contracts\EventDispatcherInterface;
+use Core\Container\Event\Contracts\EventInterface;
+use Core\Container\Event\Contracts\ListenerResolverInterface;
+
+/*
+ * Implementasi default dari EventDispatcherInterface.
+ *
+ * Mengelola registrasi listener dan pengiriman event ke listener yang sesuai.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Event/Adapters/DefaultEventDispatcher.php
+ */
+final class DefaultEventDispatcher implements EventDispatcherInterface
+{
+    /** @var array<string, array<int, array<callable|array<int, string>|string>>> */
+    private array $listeners = [];
+
+    /**
+     * Konstruktor DefaultEventDispatcher.
+     *
+     * @param ListenerResolverInterface $listenerResolver Resolver untuk listener.
+     * @param ProfilerInterface $profiler Profiler untuk performa event.
+     */
+    public function __construct(
+        private readonly ListenerResolverInterface $listenerResolver,
+        private readonly ProfilerInterface $profiler
+    ) {
+    }
+
+    /**
+     * Menambahkan pendengar untuk event tertentu.
+     *
+     * @param string $eventName Nama event.
+     * @param callable|array<int, string>|string $listener Callable, array [class, method], atau FQCN kelas listener.
+     * @param int $priority Prioritas listener (lebih tinggi dieksekusi lebih dulu).
+     * @return void
+     */
+    public function addListener(string $eventName, callable|array|string $listener, int $priority = 0): void
+    {
+        $this->listeners[$eventName][$priority][] = $listener;
+        // Urutkan berdasarkan prioritas (tertinggi lebih dulu) setelah penambahan
+        krsort($this->listeners[$eventName], SORT_NUMERIC);
+    }
+
+    /**
+     * Memicu event dan memanggil semua listener terkait.
+     *
+     * @param EventInterface $event Objek event yang akan dikirim.
+     * @param string|null $eventName Nama event (opsional, akan diambil dari FQCN event jika null).
+     * @return EventInterface Event yang sudah diproses oleh para listener.
+     */
+    public function dispatch(EventInterface $event, ?string $eventName = null): EventInterface
+    {
+        $eventName = $eventName ?? $event::class;
+
+        if (!isset($this->listeners[$eventName])) {
+            return $event;
+        }
+
+        $this->profiler->start("event.dispatch:{$eventName}");
+
+        foreach ($this->listeners[$eventName] as $priorityListeners) {
+            foreach ($priorityListeners as $listener) {
+                $listenerName = is_string($listener) ? $listener : (is_array($listener) ? $listener[0].'::'.$listener[1] : 'Closure');
+                $this->profiler->start("event.listener:{$eventName}:{$listenerName}");
+
+                $resolvedListener = $this->listenerResolver->resolve($listener);
+                $resolvedListener($event, $eventName, $this);
+                
+                $this->profiler->stop("event.listener:{$eventName}:{$listenerName}");
+            }
+        }
+
+        $this->profiler->stop("event.dispatch:{$eventName}");
+        return $event;
+    }
+
+    /**
+     * Melakukan operasi pembersihan sumber daya.
+     *
+     * @return void
+     */
+    public function dispose(): void
+    {
+        $this->listeners = [];
+        $this->listenerResolver->dispose();
+        // Profiler adalah dependensi eksternal, tidak di-dispose di sini.
+    }
+
+    /**
+     * Membuat salinan mendalam (deep clone) dari objek.
+     *
+     * @return static
+     */
+    public function deepClone(): static
+    {
+        $clone = new self($this->listenerResolver->deepClone(), $this->profiler);
+        $clone->listeners = $this->listeners; // Array callable di-copy, bukan di-clone.
+        return $clone;
+    }
+}
+/* ======== END OF Core/Container/Event/Adapters/DefaultEventDispatcher.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Event/Adapters/DefaultListenerResolver.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Event\Adapters;
+
+use Core\Container\Contracts\ContainerAwareInterface;
+use Core\Container\Contracts\ContainerInterface;
+use Core\Container\Event\Contracts\ListenerResolverInterface;
+use Core\Container\Exceptions\InvalidArgumentException;
+
+/*
+ * Implementasi default dari ListenerResolverInterface.
+ *
+ * Class ini bertanggung jawab untuk mengubah definisi listener yang abstrak
+ * (seperti string nama kelas) menjadi objek callable yang konkret dan dapat dieksekusi.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Event/Adapters/DefaultListenerResolver.php
+ */
+final class DefaultListenerResolver implements ListenerResolverInterface, ContainerAwareInterface
+{
+    private ?ContainerInterface $container = null;
+
+    /**
+     * Mengatur instance container.
+     *
+     * @param ContainerInterface $container Instance container.
+     * @return void
+     */
+    public function setContainer(ContainerInterface $container): void
+    {
+        $this->container = $container;
+    }
+
+    /**
+     * Mengurai dan mengembalikan callable dari definisi pendengar.
+     *
+     * @param mixed $listener Definisi pendengar (callable, array [class, method], atau FQCN kelas).
+     * @return callable
+     * @throws InvalidArgumentException Jika definisi listener tidak valid atau tidak bisa di-resolve.
+     */
+    public function resolve(mixed $listener): callable
+    {
+        if (is_callable($listener)) {
+            return $listener;
+        }
+
+        if ($this->container === null) {
+            throw new InvalidArgumentException("Container belum diatur untuk meresolve listener non-callable.");
+        }
+
+        if (is_string($listener)) {
+            if (!class_exists($listener)) {
+                throw new InvalidArgumentException("Kelas listener '{$listener}' tidak ditemukan.");
+            }
+            // Resolve listener dari container jika itu FQCN, asumsikan memiliki __invoke
+            $instance = $this->container->get($listener);
+            if (!is_callable($instance)) {
+                throw new InvalidArgumentException("Kelas listener '{$listener}' yang di-resolve tidak callable (tidak memiliki metode __invoke).");
+            }
+            return $instance;
+        }
+
+        if (is_array($listener) && count($listener) === 2 && is_string($listener[0]) && is_string($listener[1])) {
+            $object = $this->container->get($listener[0]);
+            if (!method_exists($object, $listener[1])) {
+                throw new InvalidArgumentException("Method '{$listener[1]}' tidak ditemukan pada objek listener '{$listener[0]}'.");
+            }
+            return [$object, $listener[1]];
+        }
+
+        throw new InvalidArgumentException("Definisi listener tidak valid.");
+    }
+
+    /**
+     * Melakukan operasi pembersihan sumber daya.
+     *
+     * @return void
+     */
+    public function dispose(): void
+    {
+        $this->container = null;
+    }
+
+    /**
+     * Membuat salinan mendalam (deep clone) dari objek.
+     *
+     * @return static
+     */
+    public function deepClone(): static
+    {
+        // Class ini stateless selain dari container, yang di-set setelahnya, jadi clone sederhana sudah cukup.
+        return new self();
+    }
+}
+/* ======== END OF Core/Container/Event/Adapters/DefaultListenerResolver.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Logger/Adapters/FileLogger.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Logger\Adapters;
+
+use Core\Container\Contracts\LoggerInterface;
+
+/*
+ * Implementasi LoggerInterface yang mencatat pesan ke dalam file.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Logger/Adapters/FileLogger.php
+ */
+final class FileLogger implements LoggerInterface
+{
+    private string $logFile;
+
+    /**
+     * Konstruktor FileLogger.
+     *
+     * @param string $logFile Path absolut ke file log.
+     */
+    public function __construct(string $logFile)
+    {
+        $this->logFile = $logFile;
+        $dir = dirname($this->logFile);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
+    }
+
+    /**
+     * Mencatat pesan error.
+     *
+     * @param string|\Stringable $message Pesan error.
+     * @param array<string, mixed> $context Konteks tambahan.
+     * @return void
+     */
+    public function error(string|\Stringable $message, array $context = []): void
+    {
+        $this->log('ERROR', $message, $context);
+    }
+
+    /**
+     * Mencatat pesan kritis.
+     *
+     * @param string|\Stringable $message Pesan kritis.
+     * @param array<string, mixed> $context Konteks tambahan.
+     * @return void
+     */
+    public function critical(string|\Stringable $message, array $context = []): void
+    {
+        $this->log('CRITICAL', $message, $context);
+    }
+
+    /**
+     * Menulis pesan ke file log.
+     *
+     * @param string $level Tingkat log.
+     * @param string|\Stringable $message Pesan.
+     * @param array<string, mixed> $context Konteks.
+     * @return void
+     */
+    private function log(string $level, string|\Stringable $message, array $context = []): void
+    {
+        $logEntry = sprintf(
+            "[%s] [%s] %s %s" . PHP_EOL,
+            date('Y-m-d H:i:s'),
+            $level,
+            (string)$message,
+            $context ? json_encode($context, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : ''
+        );
+        file_put_contents($this->logFile, $logEntry, FILE_APPEND);
+    }
+}
+/* ======== END OF Core/Container/Logger/Adapters/FileLogger.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Logger/Adapters/NullLogger.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Logger\Adapters;
+
+use Core\Container\Contracts\LoggerInterface;
+
+/*
+ * Implementasi LoggerInterface yang tidak melakukan apa-apa (Null Object Pattern).
+ * Berguna sebagai logger default untuk menghindari error jika tidak ada logger
+ * yang dikonfigurasi.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Logger/Adapters/NullLogger.php
+ */
+final class NullLogger implements LoggerInterface
+{
+    /**
+     * Mencatat pesan error. Tidak melakukan apa-apa.
+     *
+     * @param string|\Stringable $message Pesan error.
+     * @param array<string, mixed> $context Konteks tambahan.
+     * @return void
+     */
+    public function error(string|\Stringable $message, array $context = []): void
+    {
+        // Do nothing
+    }
+
+    /**
+     * Mencatat pesan kritis. Tidak melakukan apa-apa.
+     *
+     * @param string|\Stringable $message Pesan kritis.
+     * @param array<string, mixed> $context Konteks tambahan.
+     * @return void
+     */
+    public function critical(string|\Stringable $message, array $context = []): void
+    {
+        // Do nothing
+    }
+}
+/* ======== END OF Core/Container/Logger/Adapters/NullLogger.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Profiler/Adapters/DefaultProfiler.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Profiler\Adapters;
+
+use Core\Container\Contracts\ProfilerInterface;
+
+/*
+ * Implementasi dasar untuk ProfilerInterface yang mencatat waktu eksekusi.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Profiler/Adapters/DefaultProfiler.php
+ */
+final class DefaultProfiler implements ProfilerInterface
+{
+    /** @var array<string, float> */
+    private array $starts = [];
+    
+    /** @var array<string, array<int, array{start: float, end: float, duration: float}>> */
+    private array $profiles = [];
+
+    /**
+     * Memulai profil untuk label tertentu.
+     *
+     * @param string $label Label unik untuk profil.
+     * @return void
+     */
+    public function start(string $label): void
+    {
+        $this->starts[$label] = microtime(true);
+    }
+
+    /**
+     * Menghentikan profil untuk label tertentu dan mencatat durasinya.
+     *
+     * @param string $label Label profil yang akan dihentikan.
+     * @return void
+     */
+    public function stop(string $label): void
+    {
+        if (!isset($this->starts[$label])) {
+            return;
+        }
+        $endTime = microtime(true);
+        $startTime = $this->starts[$label];
+        $this->profiles[$label][] = [
+            'start' => $startTime,
+            'end' => $endTime,
+            'duration' => $endTime - $startTime
+        ];
+        unset($this->starts[$label]);
+    }
+
+    /**
+     * Mengambil semua data profil yang telah tercatat.
+     *
+     * @return array<string, array<int, array{start: float, end: float, duration: float}>>
+     */
+    public function getProfileData(): array
+    {
+        return $this->profiles;
+    }
+}
+/* ======== END OF Core/Container/Profiler/Adapters/DefaultProfiler.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Profiler/Adapters/NullProfiler.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Profiler\Adapters;
+
+use Core\Container\Contracts\ProfilerInterface;
+
+/*
+ * Implementasi ProfilerInterface yang tidak melakukan apa-apa (Null Object Pattern).
+ * Berguna sebagai profiler default saat profiling dinonaktifkan.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Profiler/Adapters/NullProfiler.php
+ */
+final class NullProfiler implements ProfilerInterface
+{
+    /**
+     * Memulai profil untuk label tertentu. Tidak melakukan apa-apa.
+     *
+     * @param string $label Label unik untuk profil.
+     * @return void
+     */
+    public function start(string $label): void
+    {
+        // Do nothing
+    }
+
+    /**
+     * Menghentikan profil untuk label tertentu. Tidak melakukan apa-apa.
+     *
+     * @param string $label Label profil yang akan dihentikan.
+     * @return void
+     */
+    public function stop(string $label): void
+    {
+        // Do nothing
+    }
+
+    /**
+     * Mengambil semua data profil. Mengembalikan array kosong.
+     *
+     * @return array<string, mixed>
+     */
+    public function getProfileData(): array
+    {
+        return [];
+    }
+}
+/* ======== END OF Core/Container/Profiler/Adapters/NullProfiler.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Error/Adapters/DefaultErrorManager.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Error\Adapters;
+
+use Core\Container\Contracts\DisposableInterface;
+use Core\Container\Contracts\ErrorManagerInterface;
+use Core\Container\Contracts\LoggerInterface;
+use Core\Container\Exceptions\FatalErrorException;
+use Throwable;
+
+/*
+ * Implementasi default dari ErrorManagerInterface.
+ * Bertanggung jawab untuk menangani error dan exception global yang tidak tertangkap.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Error/Adapters/DefaultErrorManager.php
+ */
+final class DefaultErrorManager implements ErrorManagerInterface
+{
+    private ?LoggerInterface $logger = null;
+    /** @var callable[] */
+    private array $fatalErrorCallbacks = [];
+    private bool $isRegistered = false;
+
+    /**
+     * Mengatur logger yang akan digunakan oleh ErrorManager.
+     *
+     * @param LoggerInterface $logger
+     * @return void
+     */
+    public function setLogger(LoggerInterface $logger): void
+    {
+        $this->logger = $logger;
+    }
+
+    /**
+     * Mendaftarkan handler error global untuk menangkap exception dan fatal error.
+     *
+     * @return void
+     */
+    public function registerErrorHandler(): void
+    {
+        if ($this->isRegistered) {
+            return;
+        }
+        set_exception_handler([$this, 'handleException']);
+        register_shutdown_function([$this, 'handleShutdown']);
+        $this->isRegistered = true;
+    }
+
+    /**
+     * Menangani Throwable (Exception atau Error) yang tidak tertangkap.
+     *
+     * @param Throwable $exception
+     * @return void
+     */
+    public function handleException(Throwable $exception): void
+    {
+        try {
+            if ($this->logger) {
+                $this->logger->critical(
+                    "Unhandled Exception: " . $exception->getMessage(),
+                    [
+                        'class' => $exception::class,
+                        'code' => $exception->getCode(),
+                        'file' => $exception->getFile(),
+                        'line' => $exception->getLine(),
+                        'trace' => $exception->getTraceAsString(),
+                    ]
+                );
+            }
+        } catch (Throwable) {
+            // Jika logger itu sendiri gagal, gunakan fallback
+            error_log(
+                sprintf(
+                    "[%s] CRITICAL: Unhandled Exception: %s in %s on line %d. Logger failed.",
+                    date('Y-m-d H:i:s'),
+                    $exception->getMessage(),
+                    $exception->getFile(),
+                    $exception->getLine()
+                )
+            );
+        }
+
+        if (php_sapi_name() !== 'cli' && !headers_sent()) {
+            http_response_code(500);
+        }
+    }
+
+    /**
+     * Handler shutdown function untuk menangkap error fatal.
+     *
+     * @return void
+     */
+    public function handleShutdown(): void
+    {
+        $error = error_get_last();
+        if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_RECOVERABLE_ERROR])) {
+            $exception = new FatalErrorException(
+                $error['message'],
+                $error['type'],
+                0, // Severity
+                $error['file'],
+                $error['line']
+            );
+            $this->handleException($exception);
+
+            foreach ($this->fatalErrorCallbacks as $callback) {
+                call_user_func($callback, $exception);
+            }
+        }
+    }
+
+    /**
+     * Menambahkan callable yang akan dijalankan saat terjadi error fatal.
+     *
+     * @param callable $callback
+     * @return void
+     */
+    public function addFatalErrorCallback(callable $callback): void
+    {
+        $this->fatalErrorCallbacks[] = $callback;
+    }
+
+    /**
+     * Melakukan operasi pembersihan sumber daya.
+     *
+     * @return void
+     */
+    public function dispose(): void
+    {
+        if ($this->isRegistered) {
+            restore_exception_handler();
+            // Shutdown function tidak bisa di-unregister
+            $this->isRegistered = false;
+        }
+        $this->fatalErrorCallbacks = [];
+        $this->logger = null;
+    }
+}
+/* ======== END OF Core/Container/Error/Adapters/DefaultErrorManager.php ======== */
+?>
+
+
+<?php
+/* 
+ * File: Core/Container/Extension/AbstractExtension.php
+ */
+
+declare(strict_types=1);
+
+namespace Core\Container\Extension;
+
+use Core\Container\Contracts\ContainerInterface;
+use Core\Container\Contracts\ExtensionInterface;
+
+/*
+ * Abstract base class untuk ekstensi container.
+ *
+ * Menyediakan implementasi default untuk semua metode ExtensionInterface,
+ * sehingga developer ekstensi hanya perlu meng-override metode yang relevan.
+ *
+ * @package            Core.Container
+ * @version            8.2.6
+ * @author             Gemini & User
+ * @source             Core/Container/Extension/AbstractExtension.php
+ */
+abstract class AbstractExtension implements ExtensionInterface
+{
+    /**
+     * Mendaftarkan service dan binding ke container.
+     * Subclass dapat meng-override metode ini untuk menambahkan binding.
+     *
+     * @param ContainerInterface $container Container.
+     * @return void
+     */
+    public function register(ContainerInterface $container): void
+    {
+        // Biarkan kosong secara default.
+    }
+
+    /**
+     * Melakukan boot pada ekstensi setelah semua binding terdaftar.
+     * Subclass dapat meng-override metode ini untuk menjalankan logika saat boot.
+     *
+     * @param ContainerInterface $container Container.
+     * @return void
+     */
+    public function boot(ContainerInterface $container): void
+    {
+        // Biarkan kosong secara default.
+    }
+
+    /**
+     * Melakukan shutdown pada ekstensi.
+     * Subclass dapat meng-override metode ini untuk melakukan pembersihan.
+     *
+     * @param ContainerInterface $container Container.
+     * @return void
+     */
+    public function shutdown(ContainerInterface $container): void
+    {
+        // Biarkan kosong secara default.
+    }
+
+    /**
+     * Mengembalikan daftar event yang disubscribe oleh ekstensi ini.
+     *
+     * @return iterable<string, callable|string|array<int,string>>
+     */
+    public function getSubscribedEvents(): iterable
+    {
+        return [];
+    }
+
+    /**
+     * Melakukan operasi pembersihan sumber daya.
+     *
+     * @return void
+     */
+    public function dispose(): void
+    {
+        // Tidak ada sumber daya eksternal untuk dibersihkan secara default.
+    }
+
+    /**
+     * Membuat salinan mendalam (deep clone) dari objek.
+     *
+     * @return static
+     */
+    public function deepClone(): static
+    {
+        return clone $this;
+    }
+}
+/* ======== END OF Core/Container/Extension/AbstractExtension.php ======== */
+?>
+
+
