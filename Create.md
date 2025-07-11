@@ -260,6 +260,245 @@ CI/CD-ready
 Bisa digunakan ulang di banyak project tanpa duplikasi logic
 
 
+--- 
+
+## Config file struktur design (contoh lengkap):
+
+return [
+    // Environment
+    'environment' => getenv('APP_ENV') ?: 'production',
+
+    // Aliases for easier service referencing
+    'aliases' => [
+        'user'   => \App\Contract\UserServiceInterface::class,
+        'mailer' => \App\Contract\EmailServiceInterface::class,
+        'pay'    => \App\Contract\PaymentServiceInterface::class,
+    ],
+
+    // Bootstrap dependencies (must be ready before runtime)
+    'bootstrap' => [
+        'logger',
+        'eventDispatcher',
+        'errorHandler',
+        // Bisa juga memasukkan nama alias/service lain
+    ],
+
+    // Parameters for injection (global config)
+    'parameters' => [
+        'user.default_role' => 'member',
+        'mailer.host'       => 'smtp.example.com',
+        'mailer.port'       => 587,
+        'sentry.dsn'        => getenv('SENTRY_DSN') ?: '',
+        'audit.enabled'     => true,
+        'payment.timeout'   => 15,
+    ],
+
+    // Services registration
+    'services' => [
+        \App\Contract\UserServiceInterface::class => [
+            'class'      => \App\Service\UserService::class,
+            'lifecycle'  => 'singleton', // singleton | scoped | transient
+            'tags'       => ['core', 'user'],
+            'arguments'  => [
+                '@EmailServiceInterface',
+                '%user.default_role%',
+            ],
+            'decorators' => [
+                \App\Decorator\UserCacheDecorator::class,
+                \App\Decorator\UserAuditDecorator::class,
+            ],
+            'condition'  => ['production', 'staging'], // Only enabled in these envs
+        ],
+        \App\Contract\EmailServiceInterface::class => [
+            'class'      => \App\Service\EmailService::class,
+            'lifecycle'  => 'scoped',
+            'tags'       => ['notification'],
+            'arguments'  => [
+                '%mailer.host%',
+                '%mailer.port%',
+            ],
+            // No condition = always enabled
+        ],
+        \App\Contract\PaymentServiceInterface::class => [
+            'class'      => \App\Service\PaymentService::class,
+            'lifecycle'  => 'transient',
+            'tags'       => ['payment'],
+            'arguments'  => [
+                '@LoggerAdapterInterface',
+                '@ErrorHandlerAdapterInterface',
+                '%payment.timeout%',
+            ],
+            'factory'    => \App\Factory\PaymentServiceFactory::class,
+        ],
+        // Tambahkan service lain sesuai kebutuhan
+    ],
+
+    // Logger configuration (adapter)
+    'logger' => [
+        'adapter' => \App\Adapter\MonologLoggerAdapter::class,
+        'level'   => 'debug',
+        'channel' => 'main',
+        'options' => [
+            'handlers' => [
+                ['stream' => '/var/log/app.log', 'level' => 'debug'],
+            ],
+        ],
+    ],
+
+    // Error handler configuration (adapter)
+    'errorHandler' => [
+        'adapter' => \App\Adapter\SentryErrorHandler::class,
+        'options' => [
+            'dsn' => '%sentry.dsn%',
+        ],
+    ],
+
+    // Event dispatcher configuration (adapter)
+    'eventDispatcher' => [
+        'adapter' => \App\Adapter\SymfonyEventDispatcherAdapter::class,
+        'options' => [],
+    ],
+
+    // Hooks (event lifecycle)
+    'hooks' => [
+        'beforeResolve' => [
+            \App\Hook\LogBeforeResolve::class,
+            \App\Hook\SecurityAuditHook::class,
+        ],
+        'afterResolve' => [
+            \App\Hook\ProfilerHook::class,
+        ],
+        'onError' => [
+            \App\Hook\ErrorNotificationHook::class,
+        ],
+    ],
+
+    // Pipeline (custom steps in resolving)
+    'pipeline' => [
+        'steps' => [
+            \Container\Pipeline\Step\ValidateStep::class,
+            \Container\Pipeline\Step\ResolveStep::class,
+            \Container\Pipeline\Step\LifecycleStep::class,
+            \App\Pipeline\Step\CustomMetricStep::class,
+        ],
+    ],
+
+    // Modules (plugins, OCP)
+    'modules' => [
+        \Container\Modules\Observability\ObservabilityModule::class,
+        \Container\Modules\Security\SecurityModule::class,
+        \App\Modules\Auditing\AuditTrailModule::class,
+        // Tambahkan module lain sesuai kebutuhan
+    ],
+
+    // CLI (automation & scaffolding)
+    'cli' => [
+        'enabled'  => true,
+        'commands' => [
+            'container:scaffold:core',
+            'container:generate:service',
+            'container:generate:test',
+            'container:build',
+            'container:list',
+            'container:trace',
+            'container:generate:adapter',
+            // Tambahkan command custom lain
+        ],
+    ],
+
+    // Profiling (observability)
+    'profiling' => [
+        'enabled' => true,
+        'adapter' => \App\Adapter\XhprofProfilerAdapter::class,
+    ],
+
+    // Tracing (distributed tracing)
+    'tracing' => [
+        'enabled' => true,
+        'adapter' => \App\Adapter\JaegerTracingAdapter::class,
+    ],
+
+    // Decorators global (bisa juga diatur per service)
+    'decorators' => [
+        \App\Contract\UserServiceInterface::class => [
+            \App\Decorator\UserCacheDecorator::class,
+            \App\Decorator\UserAuditDecorator::class,
+        ],
+        // Tambahkan dekorator lain
+    ],
+
+    // Conditional config (override/extend per environment)
+    'conditional' => [
+        'dev' => [
+            // Override parameter
+            'parameters' => [
+                'user.default_role' => 'developer',
+                'audit.enabled'     => false,
+                'mailer.host'       => 'smtp.mailtrap.io',
+            ],
+            // Tambah/override service khusus dev
+            'services' => [
+                \App\Contract\DebugToolbarInterface::class => [
+                    'class'     => \App\Service\DebugToolbarService::class,
+                    'lifecycle' => 'singleton',
+                    'tags'      => ['debug'],
+                ],
+            ],
+            // CLI command khusus dev
+            'cli' => [
+                'commands' => [
+                    'container:debug:trace',
+                ],
+            ],
+            // Profiling lebih verbose di dev
+            'profiling' => [
+                'enabled' => true,
+                'adapter' => \App\Adapter\XhprofProfilerAdapter::class,
+            ],
+        ],
+        'production' => [
+            'parameters' => [
+                'user.default_role' => 'member',
+                'audit.enabled'     => true,
+            ],
+            // Service auditing hanya aktif di production
+            'services' => [
+                \App\Contract\AuditServiceInterface::class => [
+                    'class'     => \App\Service\AuditService::class,
+                    'lifecycle' => 'singleton',
+                    'tags'      => ['audit'],
+                ],
+            ],
+            // Disable debug CLI
+            'cli' => [
+                'commands' => [
+                    // Hanya command relevan untuk produksi
+                ],
+            ],
+            'profiling' => [
+                'enabled' => false,
+            ],
+        ],
+        // Lingkungan lain bisa ditambah sesuai kebutuhan (staging, testing, dsb)
+    ],
+];
+
+
+---
+
+
+### 🛠 Apa yang Perlu Kamu Pastikan di Implementasi
+Hal	Penyesuaian Implementasi
+Token Resolver %...% / @...	Harus support recursive resolve dengan fallback
+conditional merge engine	Builder harus bisa override dan deep merge subarray
+CLI aware container	CLI loader harus melihat cli.commands dan environment
+Lifecycle-aware bootstrap	Jalankan bootstrap[] service sebelum resolve service lain
+Decorator resolve	Gunakan pattern resolve → wrap → wrap → return
+Modular pipeline	Pipeline harus injectable dari config dan extensible
+CLI command injection	CLI harus support auto-register dari config, bukan hardcoded
+CLI command visibility	Harus bisa hide command di production (conditional CLI)
+Override protection	Parameter CLI dan config bisa override default saat runtime
+
 
 ---
 
